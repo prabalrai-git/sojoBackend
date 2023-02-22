@@ -11,8 +11,8 @@ exports.getTopics = async (req, res) => {
 };
 
 exports.getTopicById = async (req, res) => {
+  const id = req.params.id;
   try {
-    const id = req.params.id;
     const topic = await Topic.findById(id);
     if (!topic) return res.status(404).send({ err: "Topic not found" });
     return res.status(200).json({ data: topic });

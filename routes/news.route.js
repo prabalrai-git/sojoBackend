@@ -7,4 +7,6 @@ router.get("/:id", controller.getNewsById);
 
 router.get("/similar/:id", controller.getSimilarNews);
 
+router.get("/categories/:id", controller.getNewsByCategoryId);
+
 module.exports = router;

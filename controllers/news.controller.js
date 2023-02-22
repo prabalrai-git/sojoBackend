@@ -52,3 +52,24 @@ exports.getSimilarNews = async (req, res) => {
     return res.status(500).send({ err });
   }
 };
+
+exports.getNewsByCategoryId = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const categoryExists = await Topics.findById(id);
+    if (!categoryExists)
+      return res.status(404).send({ err: "Category not found" });
+
+    const data = await News.find({
+      topic: {
+        $in: categoryExists._id,
+      },
+    })
+      .populate(["topic", "occupation"])
+      .limit(9);
+    return res.status(200).json({ data });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ err });
+  }
+};
