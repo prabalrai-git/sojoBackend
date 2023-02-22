@@ -28,7 +28,6 @@ exports.getNewsById = async (req, res) => {
 
 exports.postNews = async (req, res) => {
   cloudinaryConfig();
-  console.log(req.body.topic);
   let {
     title,
     previewText,
@@ -93,7 +92,6 @@ exports.postNews = async (req, res) => {
 
 exports.updateNews = async (req, res) => {
   cloudinaryConfig();
-  console.log(req.body.topic);
   let {
     title,
     previewText,
