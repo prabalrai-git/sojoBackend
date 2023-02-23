@@ -24,4 +24,18 @@ router.patch(
   controller.updateDetails
 );
 
+router.patch(
+  "/profile/personal",
+  passport.authenticate("jwt", { session: false }),
+  isUser,
+  controller.updatePersonalInformation
+);
+
+router.patch(
+  "/profile/topics",
+  passport.authenticate("jwt", { session: false }),
+  isUser,
+  controller.updateTopics
+);
+
 module.exports = router;
