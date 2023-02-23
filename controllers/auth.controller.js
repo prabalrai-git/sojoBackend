@@ -1,7 +1,9 @@
 const User = require("./../models/User.model");
+const Token = require("./../models/Token.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { handleText } = require("./../helper/text");
+const generateToken = require("./../helper/token");
+const { sendEmail } = require("./../utils/nodemailer");
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -35,26 +37,33 @@ exports.signup = async (req, res) => {
   if (!phone) return res.status(400).send({ err: "Phone number is required" });
 
   try {
-    const userEmailExists = await User.findOne({ email });
-    if (userEmailExists)
-      return res.status(400).send({ err: "Email already registered" });
-
-    const userUsernameExists = await User.findOne({ username });
-    if (userUsernameExists)
-      return res.status(400).send({ err: "Username already registered" });
+    const emailExists = await User.findOne({ email });
+    if (emailExists && !emailExists.isActive) {
+      const token = await Token.findOne({
+        user: emailExists._id,
+      });
+      if (token) {
+        await Token.findOneAndDelete({
+          user: emailExists._id,
+        });
+      }
+      await User.findByIdAndDelete(emailExists._id);
+    }
+    if (emailExists && emailExists.isActive) {
+      return res.status(409).send({ err: "Email already registered" });
+    }
 
     const user = new User({
       username,
       email,
       password,
       phone,
-      // gender,
-      // occupation,
-      // getPoliticalNews,
-      // getNSFWNews,
-      isActive: true,
-      // topics,
     });
+
+    const token = generateToken(4);
+    await sendEmail(user.email, "Verify Account", token);
+    const savedToken = new Token({ user: user._id, token });
+    await savedToken.save();
     const data = await user.save();
     return res.status(201).json({ data });
   } catch (err) {
@@ -63,34 +72,44 @@ exports.signup = async (req, res) => {
   }
 };
 
-exports.updateDetails = async (req, res) => {
-  let { gender, occupation, getPoliticalNews, getNSFWNews, topics } = req.body;
-  const { id } = req.params;
-
-  gender = gender && gender.trim();
-  occupation = occupation && occupation.trim();
-
-  if (!gender) return res.status(400).send({ err: "Gender is required" });
-  if (!occupation)
-    return res.status(400).send({ err: "Occupation is required" });
-  if (topics.length <= 0)
-    return res.status(400).send({ err: "Topics are required" });
+exports.postVerificationToken = async (req, res) => {
+  const { token } = req.body;
   try {
-    const user = await User.findById(id);
-    if (!user) return res.status(404).send({ err: "User not found" });
-    if (!user.isActive)
-      return res.status(400).send({ err: "Account not activated" });
+    const validToken = await Token.findOne({ token }).populate("user", "_id");
+    if (!validToken) return res.status(400).send({ err: "Invalid token" });
+    const user = await User.findOne({ _id: validToken.user._id });
+    if (user.isActive)
+      return res
+        .status(400)
+        .send({ err: "Account already activated please login" });
+    if (!user) return res.status(400).send({ err: "Invalid token" });
+    user.isActive = true;
+    await user.save();
+    await Token.findOneAndDelete({ _id: validToken._id });
+    return res.status(200).send({ msg: "Account activated" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ err });
+  }
+};
 
-    user.gender = gender;
-    user.occupation = occupation;
-    user.getPoliticalNews = getPoliticalNews;
-    user.getNSFWNews = getNSFWNews;
-    user.topics = topics;
-    user.isComplete = true;
-
-    const data = await user.update();
-
-    return res.status(200).json({ data });
+exports.resendVerificationToken = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).send({ err: "Email not registered" });
+    if (user.isActive)
+      return res
+        .status(400)
+        .send({ err: "Your account has already been activated" });
+    const token = generateToken(4);
+    await sendEmail(user.email, "Verify Account", token);
+    const newToken = new Token({
+      user: user._id,
+      token,
+    });
+    await newToken.save();
+    return res.status(200).send({ msg: "Mail sent successfully" });
   } catch (err) {
     console.log(err);
     return res.status(500).send({ err });

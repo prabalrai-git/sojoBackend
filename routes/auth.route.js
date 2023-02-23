@@ -5,6 +5,8 @@ router.post("/login", controller.login);
 
 router.post("/signup", controller.signup);
 
-router.post("/preferences/:id", controller.updateDetails);
+router.post("/verify", controller.postVerificationToken);
+
+router.post("/resend", controller.resendVerificationToken);
 
 module.exports = router;

@@ -44,14 +44,19 @@ const UserSchema = new mongoose.Schema({
     trim: true,
   },
 
-  getPoliticalNews: {
-    type: Boolean,
-    default: true,
+  ageGroup: {
+    type: String,
+    trim: true,
   },
 
-  getNSFWNews: {
+  skipPolitical: {
     type: Boolean,
-    default: true,
+    default: false,
+  },
+
+  skipNSFW: {
+    type: Boolean,
+    default: false,
   },
 
   occupation: {
@@ -65,6 +70,11 @@ const UserSchema = new mongoose.Schema({
       ref: "Topic",
     },
   ],
+
+  role: {
+    type: String,
+    default: "user",
+  },
 });
 
 UserSchema.pre("save", async function (next) {

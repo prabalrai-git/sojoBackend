@@ -18,6 +18,9 @@ app.use("/api/v1/topics", require("./routes/topic.route"));
 app.use("/api/v1/occupations", require("./routes/occupation.route"));
 app.use("/api/v1/news", require("./routes/news.route"));
 
+// user routes
+app.use("/api/v1/users", require("./routes/user/profile.route"));
+
 // admin routes
 app.use("/api/v1/admin/topics", require("./routes/admin/topics.route"));
 app.use(
