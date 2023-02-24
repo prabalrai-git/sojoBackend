@@ -5,16 +5,14 @@ const { handleText } = require("./../../helper/text");
 exports.postOccupation = async (req, res) => {
   try {
     let { name } = req.body;
-    if (!name || name.trim().legnth <= 0)
+    if (!name || name.trim().length <= 0)
       return res.status(400).send({ err: "Name cannot be empty" });
     name = handleText(name);
-    const occupationExists = await Occupation.findOne({ name });
+    const occupationExists = await Occupation.findOne({ where: { name } });
     if (occupationExists)
       return res.status(409).send({ err: "Occupation already exists" });
 
-    const occupation = new Occupation({ name });
-
-    await occupation.save();
+    const occupation = await Occupation.create({ name });
 
     return res.status(201).json({ data: occupation });
   } catch (err) {
@@ -26,11 +24,11 @@ exports.postOccupation = async (req, res) => {
 exports.updateOccupation = async (req, res) => {
   const id = req.params.id;
   let { name } = req.body;
-  if (!name || name.trim().legnth <= 0)
+  if (!name || name.trim().length <= 0)
     return res.status(400).send({ err: "Name cannot be empty" });
   name = handleText(name);
   try {
-    const occupation = await Occupation.findById(id);
+    const occupation = await Occupation.findByPk(id);
     if (!occupation)
       return res.status(404).send({ err: "Occupation not found" });
     const data = await occupation.update({
@@ -46,10 +44,10 @@ exports.updateOccupation = async (req, res) => {
 exports.deleteOccupation = async (req, res) => {
   try {
     const id = req.params.id;
-    const occupation = await Occupation.findById(id);
+    const occupation = await Occupation.findByPk(id);
     if (!occupation)
       return res.status(404).send({ err: "Occupation not found" });
-    await Occupation.findOneAndDelete({ _id: id });
+    await Occupation.destroy({ where: { id } });
     return res.status(200).send({ msg: "Occupation deleted" });
   } catch (err) {
     console.log(err);

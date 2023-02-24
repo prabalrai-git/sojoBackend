@@ -46,6 +46,27 @@ const News = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+
+    ageGroup: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      get: function () {
+        return JSON.parse(this.getDataValue("ageGroup"));
+      },
+      set: function (value) {
+        this.setDataValue("ageGroup", JSON.stringify(value));
+      },
+    },
+    gender: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      get: function () {
+        return JSON.parse(this.getDataValue("gender"));
+      },
+      set: function (value) {
+        this.setDataValue("gender", JSON.stringify(value));
+      },
+    },
   },
   {
     timestamps: true,

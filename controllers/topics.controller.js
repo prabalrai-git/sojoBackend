@@ -2,7 +2,7 @@ const { Topic } = require("./../models/");
 
 exports.getTopics = async (req, res) => {
   try {
-    const data = await Topic.find();
+    const data = await Topic.findAll();
     return res.status(200).json({ data });
   } catch (err) {
     console.log(err);
@@ -13,7 +13,7 @@ exports.getTopics = async (req, res) => {
 exports.getTopicById = async (req, res) => {
   const id = req.params.id;
   try {
-    const topic = await Topic.findById(id);
+    const topic = await Topic.findByPk(id);
     if (!topic) return res.status(404).send({ err: "Topic not found" });
     return res.status(200).json({ data: topic });
   } catch (err) {

@@ -2,8 +2,10 @@ const { User } = require("./../../models/");
 
 exports.getProfile = async (req, res) => {
   try {
-    data = await User.findById(req.user._id).populate(["occupation", "topics"]);
-    data.password = undefined;
+    const data = await User.findByPk(req.user._id, {
+      include: [Occupation, Topic],
+      attributes: { exclude: ["password"] },
+    });
     if (!data) return res.status(401).send({ err: "Unauthorized" });
     return res.status(200).json({ data });
   } catch (err) {
@@ -13,6 +15,7 @@ exports.getProfile = async (req, res) => {
 };
 
 // profile
+
 exports.completeProfile = async (req, res) => {
   let { gender, occupation, ageGroup, skipPolitical, skipNSFW } = req.body;
 
@@ -25,7 +28,7 @@ exports.completeProfile = async (req, res) => {
   if (!ageGroup) return res.status(400).send({ err: "Age Group is required" });
 
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).send({ err: "User not found" });
     if (!user.isActive)
       return res.status(400).send({ err: "Account not activated" });
@@ -33,7 +36,7 @@ exports.completeProfile = async (req, res) => {
     if (user.isComplete)
       return res.status(400).send({ err: "Account already completed" });
 
-    const data = await user.updateOne({
+    await user.update({
       gender,
       occupation,
       skipNSFW,
@@ -42,7 +45,9 @@ exports.completeProfile = async (req, res) => {
       isComplete: true,
     });
 
-    return res.status(200).json({ data });
+    const updatedUser = await User.findByPk(req.user.id);
+
+    return res.status(200).json({ data: updatedUser });
   } catch (err) {
     console.log(err);
     return res.status(500).send({ err });
@@ -62,12 +67,12 @@ exports.updateDetails = async (req, res) => {
   if (!ageGroup) return res.status(400).send({ err: "Age Group is required" });
 
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user._id);
     if (!user) return res.status(404).send({ err: "User not found" });
     if (!user.isActive)
       return res.status(400).send({ err: "Account not activated" });
 
-    const data = await user.updateOne({
+    const data = await user.update({
       gender,
       occupation,
       skipNSFW,
@@ -94,12 +99,12 @@ exports.updatePersonalInformation = async (req, res) => {
   if (!phone) return res.status(400).send({ err: "Phone number is required" });
 
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user._id);
     if (!user) return res.status(404).send({ err: "User not found" });
     if (!user.isActive)
       return res.status(400).send({ err: "Account not activated" });
 
-    const data = await user.updateOne({
+    const data = await user.update({
       email,
       phone,
     });
@@ -119,12 +124,12 @@ exports.updateTopics = async (req, res) => {
     return res.status(400).send({ err: "Please select at least one topic" });
 
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).send({ err: "User not found" });
     if (!user.isActive)
       return res.status(400).send({ err: "Account not activated" });
 
-    const data = await user.updateOne({
+    const data = await user.update({
       topics,
     });
 

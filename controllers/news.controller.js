@@ -1,9 +1,11 @@
-const { News } = require("./../models/");
-const { Topics } = require("./../models/");
+const { Op } = require("sequelize");
+const { News, Topic, Occupation } = require("./../models/");
 
 exports.getTopNews = async (req, res) => {
   try {
-    const data = await News.find().populate(["topic", "occupation"]);
+    const data = await News.findAll({
+      include: [{ model: Topic }, { model: Occupation }],
+    });
     return res.status(200).json({ data });
   } catch (err) {
     console.log(err);
@@ -14,9 +16,11 @@ exports.getTopNews = async (req, res) => {
 exports.getNewsById = async (req, res) => {
   const { id } = req.params;
   try {
-    const data = await News.findById(id).populate(["topic", "occupation"]);
+    const data = await News.findByPk(id, {
+      include: [{ model: Topic }, { model: Occupation }],
+    });
     if (!data) return res.status(404).send({ err: "News not found" });
-    await data.updateOne({
+    await data.update({
       views: data.views + 1,
     });
     return res.status(200).json({ data });
@@ -29,23 +33,25 @@ exports.getNewsById = async (req, res) => {
 exports.getSimilarNews = async (req, res) => {
   const { id } = req.params;
   try {
-    const newsExists = await News.findById(id);
+    const newsExists = await News.findByPk(id);
     if (!newsExists) return res.status(404).send({ err: "News not found" });
 
-    const categoryExists = await Topics.findById(newsExists.topic[0]._id);
+    const categoryExists = await Topic.findByPk(newsExists.topic[0]);
     if (!categoryExists)
       return res.status(404).send({ err: "Category not found" });
 
-    const data = await News.find({
-      _id: {
-        $ne: id,
+    const data = await News.findAll({
+      where: {
+        id: {
+          [Op.ne]: id,
+        },
       },
-      topic: {
-        $in: categoryExists._id,
-      },
-    })
-      .populate(["topic", "occupation"])
-      .limit(9);
+      include: [
+        { model: Topic, where: { id: categoryExists.id } },
+        { model: Occupation },
+      ],
+      limit: 9,
+    });
     return res.status(200).json({ data });
   } catch (err) {
     console.log(err);
@@ -56,17 +62,20 @@ exports.getSimilarNews = async (req, res) => {
 exports.getNewsByCategoryId = async (req, res) => {
   const { id } = req.params;
   try {
-    const categoryExists = await Topics.findById(id);
+    const categoryExists = await Topic.findByPk(id);
     if (!categoryExists)
       return res.status(404).send({ err: "Category not found" });
 
-    const data = await News.find({
-      topic: {
-        $in: categoryExists._id,
+    const data = await News.findAll({
+      where: {
+        topicId: categoryExists.id,
+        id: {
+          [Op.ne]: id,
+        },
       },
-    })
-      .populate(["topic", "occupation"])
-      .limit(9);
+      include: ["topic", "occupation"],
+      limit: 9,
+    });
     return res.status(200).json({ data });
   } catch (err) {
     console.log(err);

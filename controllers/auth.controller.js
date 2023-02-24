@@ -32,9 +32,17 @@ exports.signup = async (req, res) => {
 
   username = username && username.trim();
   phone = phone && phone.trim();
+  password = password && password.trim();
 
   if (!username) return res.status(400).send({ err: "Username is required" });
   if (!phone) return res.status(400).send({ err: "Phone number is required" });
+  if (!password) return res.status(400).send({ err: "Password is required" });
+
+  if (phone.length !== 10)
+    return res.status(400).send({ err: "Invalid phone number" });
+
+  if (phone.length <= 5)
+    return res.status(400).send({ err: "Password too short" });
 
   try {
     const emailExists = await User.findOne({ where: { email } });
