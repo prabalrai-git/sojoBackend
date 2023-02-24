@@ -1,4 +1,4 @@
-const Occupation = require("./../models/Occupation.model");
+const { Occupation } = require("./../models/");
 
 exports.getOccupations = async (req, res) => {
   try {

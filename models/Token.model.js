@@ -1,22 +1,25 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const sequelize = require("./../db/db"); // initialize sequelize instance
 
-const TokenSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Types.ObjectId,
-    ref: "User",
+const Token = sequelize.define(
+  "token",
+  {
+    token: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      allowNull: false,
+    },
   },
-  token: {
-    type: String,
-    requried: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now(),
-    // expires in 10 minutes
-    expires: 600,
-  },
-});
-
-const Token = mongoose.model("Token", TokenSchema);
+  {
+    // define options for the model
+    timestamps: false, // disable automatic timestamp fields
+    paranoid: false, // disable soft deletes
+    underscored: true, // use snake_case for attribute names
+  }
+);
 
 module.exports = Token;

@@ -1,92 +1,55 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const sequelize = require("./../db/db");
 
-const NewsSchema = new mongoose.Schema(
+const News = sequelize.define(
+  "news",
   {
     title: {
-      type: String,
+      type: DataTypes.STRING,
       allowNull: false,
       trim: true,
     },
     previewText: {
-      type: String,
+      type: DataTypes.STRING,
       allowNull: false,
       trim: true,
     },
     news: {
-      type: String,
+      type: DataTypes.STRING,
       allowNull: false,
       trim: true,
     },
-
-    topic: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Topic",
-      },
-    ],
-
-    occupation: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Occupation",
-      },
-    ],
-
-    ageGroup: [
-      {
-        type: String,
-        trim: true,
-        allowNull: false,
-      },
-    ],
-
-    gender: [
-      {
-        type: String,
-        trim: true,
-        allowNull: false,
-      },
-    ],
-
     isFeatured: {
-      type: Boolean,
-      default: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
-
     isNSFW: {
-      type: Boolean,
-      default: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
-
     isPaid: {
-      type: Boolean,
-      default: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
-
     sponsorURL: {
-      type: String,
+      type: DataTypes.STRING,
     },
-
     image: {
-      type: String,
+      type: DataTypes.STRING,
       allowNull: false,
     },
-
     publicId: {
-      type: String,
+      type: DataTypes.STRING,
       allowNull: false,
     },
-
     views: {
-      type: Number,
-      default: 0,
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
     },
   },
   {
     timestamps: true,
   }
 );
-
-const News = mongoose.model("News", NewsSchema);
 
 module.exports = News;

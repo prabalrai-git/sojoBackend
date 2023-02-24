@@ -1,91 +1,67 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const sequelize = require("./../db/db"); // initialize sequelize instance
 const bcrypt = require("bcrypt");
 
-const UserSchema = new mongoose.Schema({
+const User = sequelize.define("user", {
   username: {
-    type: String,
+    type: DataTypes.STRING,
     allowNull: false,
-    trim: "",
+    trim: true,
   },
   phone: {
-    type: String,
+    type: DataTypes.STRING,
     trim: true,
   },
   email: {
-    type: String,
-    trim: "",
+    type: DataTypes.STRING,
+    trim: true,
   },
   password: {
-    type: String,
-    trim: "",
+    type: DataTypes.STRING,
+    trim: true,
   },
   socialUserId: {
-    type: String,
-    trim: "",
+    type: DataTypes.STRING,
+    trim: true,
   },
   registrationType: {
-    type: String,
-    enum: ["email", "google", "apple"],
+    type: DataTypes.ENUM("email", "google", "apple"),
     allowNull: false,
   },
-
   isActive: {
-    type: Boolean,
-    default: false,
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
-
   isComplete: {
-    type: Boolean,
-    default: false,
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
-
   gender: {
-    type: String,
+    type: DataTypes.STRING,
     trim: true,
   },
-
   ageGroup: {
-    type: String,
+    type: DataTypes.STRING,
     trim: true,
   },
-
   skipPolitical: {
-    type: Boolean,
-    default: false,
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
-
   skipNSFW: {
-    type: Boolean,
-    default: false,
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
-
-  occupation: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Occupation",
-  },
-
-  topics: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Topic",
-    },
-  ],
-
   role: {
-    type: String,
-    default: "user",
+    type: DataTypes.STRING,
+    defaultValue: "user",
   },
 });
 
-UserSchema.pre("save", async function (next) {
-  const user = this;
-  if (user.isModified("password")) {
+User.beforeCreate(async (user, options) => {
+  if (user.password) {
     user.password = await bcrypt.hash(user.password, 10);
-    next();
   }
-  next();
 });
-
-const User = mongoose.model("User", UserSchema);
 
 module.exports = User;

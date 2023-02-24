@@ -1,6 +1,6 @@
-const User = require("./../../models/User.model");
-const News = require("./../../models/News.model");
-const Topics = require("./../../models/Topic.model");
+const { User } = require("./../../models/");
+const { News } = require("./../../models/");
+const { Topic } = require("./../../models/");
 
 exports.getNews = async (req, res) => {
   try {
@@ -24,7 +24,7 @@ exports.getSimilarNews = async (req, res) => {
     const newsExists = await News.findById(id);
     if (!newsExists) return res.status(404).send({ err: "News not found" });
 
-    const categoryExists = await Topics.findById(newsExists.topic[0]._id);
+    const categoryExists = await Topic.findById(newsExists.topic[0]._id);
     if (!categoryExists)
       return res.status(404).send({ err: "Category not found" });
 

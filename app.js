@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-
+const sequelize = require("./db/db");
 const app = express();
 const passport = require("passport");
 require("./security/passport")(passport);
@@ -29,5 +29,12 @@ app.use(
   require("./routes/admin/occupation.route")
 );
 app.use("/api/v1/admin/news", require("./routes/admin/news.route"));
+
+sequelize
+  .sync({ force: false })
+  .then(() => {
+    console.log("Connected to the database");
+  })
+  .catch((err) => console.log(err));
 
 module.exports = app;

@@ -1,4 +1,4 @@
-const News = require("./../../models/News.model");
+const { News } = require("./../../models/");
 const { cloudinaryConfig } = require("./../../helper/cloudinary");
 const { handleText } = require("./../../helper/text");
 const fs = require("fs");

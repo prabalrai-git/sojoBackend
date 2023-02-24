@@ -1,13 +1,12 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const sequelize = require("./../db/db"); // initialize sequelize instance
 
-const OccupationSchema = new mongoose.Schema({
+const Occupation = sequelize.define("occupation", {
   name: {
-    type: String,
+    type: DataTypes.STRING,
     allowNull: false,
     trim: true,
   },
 });
-
-const Occupation = mongoose.model("Occupation", OccupationSchema);
 
 module.exports = Occupation;

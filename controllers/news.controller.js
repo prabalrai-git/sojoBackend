@@ -1,5 +1,5 @@
-const News = require("./../models/News.model");
-const Topics = require("./../models/Topic.model");
+const { News } = require("./../models/");
+const { Topics } = require("./../models/");
 
 exports.getTopNews = async (req, res) => {
   try {

@@ -1,4 +1,4 @@
-const Occupation = require("./../../models/Occupation.model");
+const { Occupation } = require("./../../models");
 
 const { handleText } = require("./../../helper/text");
 

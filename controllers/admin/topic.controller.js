@@ -1,4 +1,4 @@
-const Topic = require("./../../models/Topic.model");
+const { Topic } = require("./../../models/");
 
 const { handleText } = require("./../../helper/text");
 

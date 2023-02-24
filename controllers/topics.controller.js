@@ -1,4 +1,4 @@
-const Topic = require("./../models/Topic.model");
+const { Topic } = require("./../models/");
 
 exports.getTopics = async (req, res) => {
   try {

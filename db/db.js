@@ -1,11 +1,6 @@
-const mongoose = require("mongoose");
-mongoose.set("strictQuery", false);
+const { Sequelize } = require("sequelize");
 
-mongoose
-  .connect(process.env.DATABASE_URI)
-  .then(() => {
-    console.log("Connected to database");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+module.exports = sequelize = new Sequelize("sojo_news", "root", "root", {
+  dialect: "mysql",
+  host: "localhost",
+});

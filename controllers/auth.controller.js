@@ -1,5 +1,5 @@
-const User = require("./../models/User.model");
-const Token = require("./../models/Token.model");
+const { User } = require("./../models/");
+const { Token } = require("./../models/");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const generateToken = require("./../helper/token");
@@ -8,11 +8,11 @@ const { sendEmail } = require("./../utils/nodemailer");
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).send({ err: "Invalid email" });
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(400).send({ err: "Invalid Password" });
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
 
@@ -37,34 +37,35 @@ exports.signup = async (req, res) => {
   if (!phone) return res.status(400).send({ err: "Phone number is required" });
 
   try {
-    const emailExists = await User.findOne({ email });
+    const emailExists = await User.findOne({ where: { email } });
     if (emailExists && !emailExists.isActive) {
       const token = await Token.findOne({
-        user: emailExists._id,
+        where: { user: emailExists.id },
       });
       if (token) {
-        await Token.findOneAndDelete({
-          user: emailExists._id,
+        await Token.destroy({
+          where: { user: emailExists.id },
         });
       }
-      await User.findByIdAndDelete(emailExists._id);
+      await User.destroy({ where: { id: emailExists.id } });
     }
     if (emailExists && emailExists.isActive) {
       return res.status(409).send({ err: "Email already registered" });
     }
 
-    const user = new User({
+    const user = await User.create({
       username,
       email,
       password,
       phone,
+      registrationType: "email",
     });
 
     const token = generateToken(4);
     await sendEmail(user.email, "Verify Account", token);
-    const savedToken = new Token({ user: user._id, token });
-    await savedToken.save();
-    const data = await user.save();
+    await Token.create({ userId: user.id, token });
+    const data = user.toJSON();
+    delete data.password;
     return res.status(201).json({ data });
   } catch (err) {
     console.log(err);
@@ -75,17 +76,27 @@ exports.signup = async (req, res) => {
 exports.postVerificationToken = async (req, res) => {
   const { token } = req.body;
   try {
-    const validToken = await Token.findOne({ token }).populate("user", "_id");
-    if (!validToken) return res.status(400).send({ err: "Invalid token" });
-    const user = await User.findOne({ _id: validToken.user._id });
-    if (user.isActive)
+    const validToken = await Token.findOne({
+      where: { token },
+    });
+
+    if (!validToken) {
+      return res.status(400).send({ err: "Invalid token" });
+    }
+
+    console.log(validToken);
+
+    const user = await User.findByPk(validToken.userId);
+    if (user.isActive) {
       return res
         .status(400)
         .send({ err: "Account already activated please login" });
-    if (!user) return res.status(400).send({ err: "Invalid token" });
+    }
+
     user.isActive = true;
     await user.save();
-    await Token.findOneAndDelete({ _id: validToken._id });
+    await validToken.destroy();
+
     return res.status(200).send({ msg: "Account activated" });
   } catch (err) {
     console.log(err);
@@ -95,8 +106,9 @@ exports.postVerificationToken = async (req, res) => {
 
 exports.resendVerificationToken = async (req, res) => {
   const { email } = req.body;
+
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ where: { email } });
     if (!user) return res.status(401).send({ err: "Email not registered" });
     if (user.isActive)
       return res
@@ -104,11 +116,11 @@ exports.resendVerificationToken = async (req, res) => {
         .send({ err: "Your account has already been activated" });
     const token = generateToken(4);
     await sendEmail(user.email, "Verify Account", token);
-    const newToken = new Token({
-      user: user._id,
+
+    await Token.create({
+      userId: user.id,
       token,
     });
-    await newToken.save();
     return res.status(200).send({ msg: "Mail sent successfully" });
   } catch (err) {
     console.log(err);
