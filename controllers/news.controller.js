@@ -65,11 +65,12 @@ exports.getSimilarNews = async (req, res) => {
         },
       },
       include: [
-        { model: Topic, where: { id: categoryExists.id } },
+        { model: Topic, where: { [Op.in]: categoryExists.id } },
         { model: Occupation },
       ],
       limit: 9,
     });
+    console.log(data);
     return res.status(200).json({ data });
   } catch (err) {
     console.log(err);
