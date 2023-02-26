@@ -14,7 +14,7 @@ exports.getAllNews = async (req, res) => {
         },
         {
           model: Occupation,
-          as: "occupation",
+          as: "occupations",
         },
       ],
     });
@@ -29,7 +29,16 @@ exports.getNewsById = async (req, res) => {
   const { id } = req.params;
   try {
     const data = await News.findByPk(id, {
-      include: [Topic, Occupation],
+      include: [
+        {
+          model: Topic,
+          as: "topics",
+        },
+        {
+          model: Occupation,
+          as: "occupations",
+        },
+      ],
     });
     if (!data) return res.status(404).send({ err: "News not found" });
     return res.status(200).json({ data });
@@ -45,10 +54,10 @@ exports.postNews = async (req, res) => {
     title,
     previewText,
     news,
-    topics,
+    topic,
     ageGroup,
     gender,
-    occupations,
+    occupation,
     isFeatured,
     isNSFW,
     isPaid,
@@ -61,11 +70,11 @@ exports.postNews = async (req, res) => {
     return res.status(400).send({ err: "Preview Text cannot be empty" });
   if (!news || news.trim().length <= 0)
     return res.status(400).send({ err: "News cannot be empty" });
-  if (!topics || topics.length <= 0)
+  if (!topic || topic.length <= 0)
     return res.status(400).send({ err: "Topic cannot be empty" });
   if (!ageGroup || ageGroup.length <= 0)
     return res.status(400).send({ err: "Age Group cannot be empty" });
-  if (!occupations || occupations.length <= 0)
+  if (!occupation || occupation.length <= 0)
     return res.status(400).send({ err: "Occupation cannot be empty" });
 
   if (!req.file) return res.status(400).send({ err: "Image is required" });
@@ -80,6 +89,7 @@ exports.postNews = async (req, res) => {
   try {
     const upload = await cloudinary.v2.uploader.upload(req.file.path);
     fs.unlinkSync(req.file.path);
+
     const newsData = await News.create({
       title,
       previewText,
@@ -94,8 +104,8 @@ exports.postNews = async (req, res) => {
       publicId: upload.public_id,
     });
 
-    await newsData.addOccupations(occupations);
-    await newsData.addTopics(topics);
+    await newsData.addOccupations(occupation);
+    await newsData.addTopics(topic);
 
     const data = await News.findByPk(newsData.id, {
       include: [
@@ -168,33 +178,61 @@ exports.updateNews = async (req, res) => {
 
   let upload;
   try {
-    const newsExists = await News.findByPk(id);
-    if (!newsExists) return res.status(404).send({ err: "News not found" });
+    let newsData = await News.findByPk(id);
 
-    if (req.file) {
-      await cloudinaryV2.uploader.destroy(newsExists.publicId);
-      upload = await cloudinaryV2.uploader.upload(req.file.path);
-      fs.unlinkSync(req.file.path);
+    if (!newsData) {
+      return res.status(404).send({ err: "News not found" });
     }
 
-    const topicIds = topic.map((topicId) => parseInt(topicId));
-    const ageGroups = ageGroup.map((age) => parseInt(age));
-    const genders = gender.map((genderType) => parseInt(genderType));
+    if (req.file) {
+      const upload = await cloudinary.v2.uploader.upload(req.file.path);
+      fs.unlinkSync(req.file.path);
 
-    const data = await newsExists.update({
-      title,
-      previewText,
-      news,
-      topicId: topicIds,
-      ageGroup: ageGroups,
-      gender: genders,
-      occupationId: parseInt(occupation),
-      isFeatured,
-      isNSFW,
-      isPaid,
-      sponsorURL,
-      image: upload ? upload.secure_url : newsExists.image,
-      publicId: upload ? upload.public_id : newsExists.publicId,
+      if (newsData.publicId) {
+        await cloudinary.v2.uploader.destroy(newsData.publicId);
+      }
+
+      newsData.image = upload.secure_url;
+      newsData.publicId = upload.public_id;
+    }
+
+    newsData.title = title;
+    newsData.previewText = previewText;
+    newsData.news = news;
+    newsData.ageGroup = ageGroup;
+    newsData.gender = gender;
+    newsData.isFeatured = isFeatured;
+    newsData.isNSFW = isNSFW;
+    newsData.isPaid = isPaid;
+    newsData.sponsorURL = sponsorURL;
+
+    await newsData.setOccupations([]);
+    await newsData.setTopics([]);
+
+    await newsData.addOccupations(occupation);
+    await newsData.addTopics(topic);
+
+    await newsData.save();
+
+    const data = await News.findByPk(newsData.id, {
+      include: [
+        {
+          model: Topic,
+          as: "topics",
+          attributes: ["id", "name"],
+          through: {
+            attributes: [],
+          },
+        },
+        {
+          model: Occupation,
+          as: "occupations",
+          attributes: ["id", "name"],
+          through: {
+            attributes: [],
+          },
+        },
+      ],
     });
 
     return res.status(200).json({ data });
