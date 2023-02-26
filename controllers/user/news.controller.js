@@ -2,7 +2,7 @@ const { User, News, Topic } = require("./../../models/");
 
 exports.getNews = async (req, res) => {
   try {
-    const user = await User.findByPk(req.user._id);
+    const user = await User.findByPk(req.user.id);
     const data = await News.findAll({
       include: [{ model: Topic }, { model: Occupation }],
       where: {

@@ -4,7 +4,16 @@ const { News, Topic, Occupation } = require("./../models/");
 exports.getTopNews = async (req, res) => {
   try {
     const data = await News.findAll({
-      include: [{ model: Topic }, { model: Occupation }],
+      include: [
+        {
+          model: Topic,
+          as: "topics",
+        },
+        {
+          model: Occupation,
+          as: "occupations",
+        },
+      ],
     });
     return res.status(200).json({ data });
   } catch (err) {
@@ -17,7 +26,16 @@ exports.getNewsById = async (req, res) => {
   const { id } = req.params;
   try {
     const data = await News.findByPk(id, {
-      include: [{ model: Topic }, { model: Occupation }],
+      include: [
+        {
+          model: Topic,
+          as: "topics",
+        },
+        {
+          model: Occupation,
+          as: "occupations",
+        },
+      ],
     });
     if (!data) return res.status(404).send({ err: "News not found" });
     await data.update({
@@ -68,14 +86,24 @@ exports.getNewsByCategoryId = async (req, res) => {
 
     const data = await News.findAll({
       where: {
-        topicId: categoryExists.id,
+        // topicId: categoryExists.id,
         id: {
           [Op.ne]: id,
         },
       },
-      include: ["topic", "occupation"],
+      include: [
+        {
+          model: Topic,
+          as: "topics",
+        },
+        {
+          model: Occupation,
+          as: "occupations",
+        },
+      ],
       limit: 9,
     });
+
     return res.status(200).json({ data });
   } catch (err) {
     console.log(err);
