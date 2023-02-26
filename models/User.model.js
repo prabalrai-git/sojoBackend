@@ -1,6 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("./../db/db"); // initialize sequelize instance
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 const User = sequelize.define("user", {
   username: {
@@ -56,6 +57,15 @@ const User = sequelize.define("user", {
     type: DataTypes.STRING,
     defaultValue: "user",
   },
+
+  resetPasswordToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  resetPasswordExpires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 });
 
 User.beforeCreate(async (user, options) => {
@@ -63,5 +73,12 @@ User.beforeCreate(async (user, options) => {
     user.password = await bcrypt.hash(user.password, 10);
   }
 });
+
+User.prototype.generatePasswordResetToken = async function () {
+  const token = crypto.randomBytes(20).toString("hex");
+  this.resetPasswordToken = token;
+  this.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+  return token;
+};
 
 module.exports = User;

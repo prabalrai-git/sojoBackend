@@ -135,3 +135,71 @@ exports.resendVerificationToken = async (req, res) => {
     return res.status(500).send({ err });
   }
 };
+
+// forgot password
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.params;
+  if (!email || email.trim().length <= 0)
+    return res.status(400).send({ err: "Email is required" });
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(404).send({ err: "User not found" });
+    const token = await user.generatePasswordResetToken();
+    // send email
+    await sendEmail(
+      email,
+      "Password Reset Link",
+      `<div>
+        <p>Hello User</p>
+        <p>Please click the link below to reset your password</p>
+        <a
+          href=http://localhost:3000/auth/forgot-password/${token}
+          target="_blank"
+        >
+          Rest Password
+        </a>
+      </div>`
+    );
+    await user.save();
+    return res.status(200).send({ msg: "Password reset link sent" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ err });
+  }
+};
+
+// forgot password
+exports.resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password, confirmPassword } = req.body;
+  if (!token || token.trim().length <= 0)
+    return res.status(400).send({ err: "Token is required" });
+
+  if (!password || password.trim().length <= 0)
+    return res.status(400).send({ err: "Password cannot be empty" });
+
+  // Check if the new password and confirm password match
+  if (password !== confirmPassword) {
+    return res.status(400).send({ err: "Passwords do not match" });
+  }
+
+  if (password.length <= 5)
+    return res.status(400).send({ err: "Password too short" });
+
+  try {
+    const user = await User.findOne({ where: { resetPasswordToken: token } });
+    if (!user) return res.status(404).send({ err: "User not found" });
+
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    // Update the user's password
+    await user.update({
+      password: hashedPassword,
+      resetPasswordToken: null,
+    });
+
+    return res.status(200).json({ msg: "Password updated successfully" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ err });
+  }
+};

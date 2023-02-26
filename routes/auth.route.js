@@ -9,4 +9,8 @@ router.post("/verify", controller.postVerificationToken);
 
 router.post("/resend", controller.resendVerificationToken);
 
+router.post("/forgot-password/:email", controller.forgotPassword);
+
+router.post("/reset-password/:token", controller.resetPassword);
+
 module.exports = router;

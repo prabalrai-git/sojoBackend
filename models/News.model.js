@@ -15,7 +15,7 @@ const News = sequelize.define(
       trim: true,
     },
     news: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
       trim: true,
     },
