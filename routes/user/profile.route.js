@@ -38,4 +38,11 @@ router.patch(
   controller.updateTopics
 );
 
+router.patch(
+  "/profile/password",
+  passport.authenticate("jwt", { session: false }),
+  isUser,
+  controller.updatePassword
+);
+
 module.exports = router;
