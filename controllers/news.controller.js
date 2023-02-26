@@ -51,26 +51,35 @@ exports.getNewsById = async (req, res) => {
 exports.getSimilarNews = async (req, res) => {
   const { id } = req.params;
   try {
-    const newsExists = await News.findByPk(id);
+    const newsExists = await News.findByPk(id, {
+      include: [{ model: Topic }],
+    });
     if (!newsExists) return res.status(404).send({ err: "News not found" });
 
-    const categoryExists = await Topic.findByPk(newsExists.topic[0]);
+    const categoryExists = await Topic.findByPk(newsExists.topics[0].id);
     if (!categoryExists)
       return res.status(404).send({ err: "Category not found" });
 
     const data = await News.findAll({
+      include: [
+        {
+          model: Topic,
+          where: {
+            id: categoryExists.id,
+          },
+        },
+        {
+          model: Occupation,
+        },
+      ],
       where: {
         id: {
           [Op.ne]: id,
         },
       },
-      include: [
-        { model: Topic, where: { [Op.in]: categoryExists.id } },
-        { model: Occupation },
-      ],
+
       limit: 9,
     });
-    console.log(data);
     return res.status(200).json({ data });
   } catch (err) {
     console.log(err);
