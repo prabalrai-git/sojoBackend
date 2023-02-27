@@ -82,7 +82,11 @@ exports.postNews = async (req, res) => {
   title = handleText(title);
   previewText = handleText(previewText);
 
-  if (previewText.length >= 250) {
+  if (title.length > 90) {
+    return res.status(400).send({ err: "Title too long" });
+  }
+
+  if (previewText.length > 161) {
     return res.status(400).send({ err: "Preview text is too long" });
   }
 
@@ -172,7 +176,11 @@ exports.updateNews = async (req, res) => {
   title = handleText(title);
   previewText = handleText(previewText);
 
-  if (previewText.length >= 250) {
+  if (title.length > 90) {
+    return res.status(400).send({ err: "Title too long" });
+  }
+
+  if (previewText.length > 161) {
     return res.status(400).send({ err: "Preview text is too long" });
   }
 

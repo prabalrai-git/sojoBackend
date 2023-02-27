@@ -93,10 +93,8 @@ exports.getNewsByCategoryId = async (req, res) => {
     const categoryExists = await Topic.findByPk(id);
     if (!categoryExists)
       return res.status(404).send({ err: "Category not found" });
-
     const data = await News.findAll({
       where: {
-        // topicId: categoryExists.id,
         id: {
           [Op.ne]: id,
         },
@@ -105,6 +103,9 @@ exports.getNewsByCategoryId = async (req, res) => {
         {
           model: Topic,
           as: "topics",
+          where: {
+            id: categoryExists.id,
+          },
         },
         {
           model: Occupation,
