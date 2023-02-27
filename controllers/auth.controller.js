@@ -10,6 +10,7 @@ exports.login = async (req, res) => {
   try {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).send({ err: "Invalid email" });
+    if (!user.isActive) return res.status(400).send({ err: "not_active" });
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(400).send({ err: "Invalid Password" });
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
@@ -41,7 +42,7 @@ exports.signup = async (req, res) => {
   if (phone.length !== 10)
     return res.status(400).send({ err: "Invalid phone number" });
 
-  if (phone.length <= 5)
+  if (password.length <= 5)
     return res.status(400).send({ err: "Password too short" });
 
   try {
@@ -144,6 +145,8 @@ exports.forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(404).send({ err: "User not found" });
+    if (!user.isActive)
+      return res.status(404).send({ err: "Account not activated" });
     const token = await user.generatePasswordResetToken();
     // send email
     await sendEmail(
@@ -189,6 +192,9 @@ exports.resetPassword = async (req, res) => {
   try {
     const user = await User.findOne({ where: { resetPasswordToken: token } });
     if (!user) return res.status(404).send({ err: "User not found" });
+
+    if (!user.isActive)
+      return res.status(404).send({ err: "Account not activated" });
 
     const hashedPassword = bcrypt.hashSync(password, 10);
     // Update the user's password
