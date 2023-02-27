@@ -14,6 +14,7 @@ exports.getTopNews = async (req, res) => {
           as: "occupations",
         },
       ],
+      order: [["id", "DESC"]],
     });
     return res.status(200).json({ data });
   } catch (err) {
@@ -77,7 +78,7 @@ exports.getSimilarNews = async (req, res) => {
           [Op.ne]: id,
         },
       },
-
+      order: [["id", "DESC"]],
       limit: 9,
     });
     return res.status(200).json({ data });
@@ -112,6 +113,7 @@ exports.getNewsByCategoryId = async (req, res) => {
           as: "occupations",
         },
       ],
+      order: [["id", "DESC"]],
       limit: 9,
     });
 

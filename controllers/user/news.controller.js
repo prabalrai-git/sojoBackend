@@ -9,6 +9,7 @@ exports.getNews = async (req, res) => {
           model: Topic,
         },
       ],
+      order: [["id", "DESC"]],
     });
     const topicIds = user.topics.map((topic) => topic.id);
 
@@ -62,7 +63,7 @@ exports.getSimilarNews = async (req, res) => {
           [Op.ne]: id,
         },
       },
-
+      order: [["id", "DESC"]],
       limit: 9,
     });
     return res.status(200).json({ data });

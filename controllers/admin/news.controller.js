@@ -17,6 +17,7 @@ exports.getAllNews = async (req, res) => {
           as: "occupations",
         },
       ],
+      order: [["id", "DESC"]],
     });
     return res.status(200).json({ data });
   } catch (err) {
@@ -82,7 +83,7 @@ exports.postNews = async (req, res) => {
   title = handleText(title);
   previewText = handleText(previewText);
 
-  if (title.length > 90) {
+  if (title.length > 126) {
     return res.status(400).send({ err: "Title too long" });
   }
 
@@ -108,8 +109,17 @@ exports.postNews = async (req, res) => {
       publicId: upload.public_id,
     });
 
-    await newsData.addOccupations(occupation);
-    await newsData.addTopics(topic);
+    const topicsArr = Array.isArray(topic) ? topic : [topic];
+    const topicIds = topicsArr.map((t) => t);
+    await newsData.addTopics(topicIds, {
+      through: {
+        order: topicsArr.map((t) => t.order || 0),
+      },
+    });
+
+    const occupationArr = Array.isArray(occupation) ? occupation : [occupation];
+    const occupationIds = occupationArr.map((t) => t);
+    await newsData.addOccupations(occupationIds);
 
     const data = await News.findByPk(newsData.id, {
       include: [
@@ -176,7 +186,7 @@ exports.updateNews = async (req, res) => {
   title = handleText(title);
   previewText = handleText(previewText);
 
-  if (title.length > 90) {
+  if (title.length > 126) {
     return res.status(400).send({ err: "Title too long" });
   }
 
@@ -217,8 +227,13 @@ exports.updateNews = async (req, res) => {
     await newsData.setOccupations([]);
     await newsData.setTopics([]);
 
-    await newsData.addOccupations(occupation);
-    await newsData.addTopics(topic);
+    const topicsArr = Array.isArray(topic) ? topic : [topic];
+    const topicIds = topicsArr.map((t) => t);
+    await newsData.addTopics(topicIds);
+
+    const occupationArr = Array.isArray(occupation) ? occupation : [occupation];
+    const occupationIds = occupationArr.map((t) => t);
+    await newsData.addOccupations(occupationIds);
 
     await newsData.save();
 
@@ -242,7 +257,6 @@ exports.updateNews = async (req, res) => {
         },
       ],
     });
-
     return res.status(200).json({ data });
   } catch (err) {
     console.log(err);
