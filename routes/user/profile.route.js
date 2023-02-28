@@ -39,6 +39,13 @@ router.patch(
 );
 
 router.patch(
+  "/profile/topic/:id",
+  passport.authenticate("jwt", { session: false }),
+  isUser,
+  controller.addTopic
+);
+
+router.patch(
   "/profile/password",
   passport.authenticate("jwt", { session: false }),
   isUser,

@@ -7,6 +7,7 @@ exports.isAdmin = (req, res, next) => {
 };
 
 exports.isUser = (req, res, next) => {
+  console.log(req.user);
   if (req.user.role === "user" || req.user.role === "admin") {
     next();
   } else {
