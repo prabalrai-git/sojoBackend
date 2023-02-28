@@ -29,6 +29,7 @@ app.use(
   require("./routes/admin/occupation.route")
 );
 app.use("/api/v1/admin/news", require("./routes/admin/news.route"));
+app.use("/api/v1/admin/users", require("./routes/admin/user.route"));
 
 sequelize
   .sync({ force: false })
