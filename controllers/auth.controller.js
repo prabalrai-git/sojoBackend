@@ -29,18 +29,18 @@ exports.login = async (req, res) => {
 };
 
 exports.signup = async (req, res) => {
-  let { username, email, password, phone } = req.body;
+  let { username, email, password } = req.body;
 
   username = username && username.trim();
-  phone = phone && phone.trim();
+  // phone = phone && phone.trim();
   password = password && password.trim();
 
   if (!username) return res.status(400).send({ err: "Username is required" });
-  if (!phone) return res.status(400).send({ err: "Phone number is required" });
+  // if (!phone) return res.status(400).send({ err: "Phone number is required" });
   if (!password) return res.status(400).send({ err: "Password is required" });
 
-  if (phone.length !== 10)
-    return res.status(400).send({ err: "Invalid phone number" });
+  // if (phone.length !== 10)
+  //   return res.status(400).send({ err: "Invalid phone number" });
 
   if (password.length <= 5)
     return res.status(400).send({ err: "Password too short" });
@@ -67,7 +67,7 @@ exports.signup = async (req, res) => {
       username,
       email,
       password,
-      phone,
+      // phone,
       registrationType: "email",
     });
 

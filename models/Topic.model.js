@@ -7,6 +7,15 @@ const Topic = sequelize.define("topic", {
     allowNull: false,
     trim: true,
   },
+
+  image: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  publicId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 });
 
 module.exports = Topic;

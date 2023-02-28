@@ -13,20 +13,8 @@ exports.getAllNews = async (req, res) => {
 
   try {
     const data = await News.findAll({
-      // where: {
-      //   [Op.or]: [
-      //     {
-      //       title: {
-      //         [Op.iLike]: `%${search}%`,
-      //       },
-      //     },
-      //   ],
-      // },
       where: {
-        [Op.or]: [
-          { title: { [Op.like]: "%" + search + "%" } },
-          // { previewText: { [Op.like]: "%" + search + "%" } },
-        ],
+        [Op.or]: [{ title: { [Op.like]: "%" + search + "%" } }],
       },
 
       include: [
@@ -120,13 +108,13 @@ exports.postNews = async (req, res) => {
   title = handleText(title);
   previewText = handleText(previewText);
 
-  if (title.length > 126) {
-    return res.status(400).send({ err: "Title too long" });
-  }
+  // if (title.length > 126) {
+  //   return res.status(400).send({ err: "Title too long" });
+  // }
 
-  if (previewText.length > 161) {
-    return res.status(400).send({ err: "Preview text is too long" });
-  }
+  // if (previewText.length > 161) {
+  //   return res.status(400).send({ err: "Preview text is too long" });
+  // }
 
   try {
     const upload = await cloudinary.v2.uploader.upload(req.file.path);
@@ -223,13 +211,13 @@ exports.updateNews = async (req, res) => {
   title = handleText(title);
   previewText = handleText(previewText);
 
-  if (title.length > 126) {
-    return res.status(400).send({ err: "Title too long" });
-  }
+  // if (title.length > 126) {
+  //   return res.status(400).send({ err: "Title too long" });
+  // }
 
-  if (previewText.length > 161) {
-    return res.status(400).send({ err: "Preview text is too long" });
-  }
+  // if (previewText.length > 161) {
+  //   return res.status(400).send({ err: "Preview text is too long" });
+  // }
 
   let upload;
   try {
