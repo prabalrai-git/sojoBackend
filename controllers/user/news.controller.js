@@ -3,7 +3,7 @@ const { User, News, Topic, Occupation } = require("./../../models/");
 
 exports.getNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
-  const limit = req.query.limit ? parseInt(req.query.limit) : 3;
+  const limit = req.query.limit ? parseInt(req.query.limit) : 9;
   const offset = (page - 1) * limit;
   try {
     const user = await User.findByPk(req.user.id, {

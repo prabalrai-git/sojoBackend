@@ -49,11 +49,12 @@ exports.signup = async (req, res) => {
     const emailExists = await User.findOne({ where: { email } });
     if (emailExists && !emailExists.isActive) {
       const token = await Token.findOne({
-        where: { user: emailExists.id },
+        where: { user_id: emailExists.id },
       });
+      console.log(token);
       if (token) {
         await Token.destroy({
-          where: { user: emailExists.id },
+          where: { user_id: emailExists.id },
         });
       }
       await User.destroy({ where: { id: emailExists.id } });
