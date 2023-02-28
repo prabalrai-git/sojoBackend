@@ -2,6 +2,9 @@ const { Op } = require("sequelize");
 const { User, News, Topic, Occupation } = require("./../../models/");
 
 exports.getNews = async (req, res) => {
+  const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
+  const limit = req.query.limit ? parseInt(req.query.limit) : 3;
+  const offset = (page - 1) * limit;
   try {
     const user = await User.findByPk(req.user.id, {
       include: [
@@ -25,8 +28,36 @@ exports.getNews = async (req, res) => {
         },
         { model: Occupation },
       ],
+      limit: limit,
+      offset: offset,
+      order: [["id", "DESC"]],
     });
-    return res.status(200).json({ data });
+
+    const count = await News.count({
+      include: [
+        {
+          model: Topic,
+          where: {
+            id: {
+              [Op.in]: topicIds,
+            },
+          },
+        },
+      ],
+    });
+
+    const totalPages = Math.ceil(count / limit);
+    const nextPage = page < totalPages ? page + 1 : null;
+    const prevPage = page > 1 ? page - 1 : null;
+    return res.status(200).json({
+      data: data,
+      pagination: {
+        currentPage: page,
+        nextPage: nextPage,
+        prevPage: prevPage,
+        totalPages: totalPages,
+      },
+    });
   } catch (err) {
     console.log(err);
     return res.status(500).send({ err });

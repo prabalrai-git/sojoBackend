@@ -5,6 +5,9 @@ const fs = require("fs");
 const cloudinary = require("cloudinary");
 
 exports.getAllNews = async (req, res) => {
+  const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
+  const limit = req.query.limit ? parseInt(req.query.limit) : 9;
+  const offset = (page - 1) * limit;
   try {
     const data = await News.findAll({
       include: [
@@ -18,8 +21,23 @@ exports.getAllNews = async (req, res) => {
         },
       ],
       order: [["id", "DESC"]],
+      limit: limit,
+      offset: offset,
     });
-    return res.status(200).json({ data });
+    const count = await News.count();
+    const totalPages = Math.ceil(count / limit);
+    const nextPage = page < totalPages ? page + 1 : null;
+    const prevPage = page > 1 ? page - 1 : null;
+
+    return res.status(200).json({
+      data: data,
+      pagination: {
+        currentPage: page,
+        nextPage: nextPage,
+        prevPage: prevPage,
+        totalPages: totalPages,
+      },
+    });
   } catch (err) {
     console.log(err);
     return res.status(500).send({ err });
