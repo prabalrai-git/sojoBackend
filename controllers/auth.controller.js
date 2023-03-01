@@ -28,6 +28,29 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.googleLogin = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(400).send({ err: "Email not registered" });
+    if (user.registrationType !== "google")
+      return res.status(400).send({ err: "Email not registered" });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    const data = {
+      token,
+      id: user.id,
+    };
+    return res.status(200).json({ data });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ err });
+  }
+};
+
 exports.signup = async (req, res) => {
   let { username, email, password } = req.body;
 
@@ -83,6 +106,39 @@ exports.signup = async (req, res) => {
   }
 };
 
+exports.googleSignup = async (req, res) => {
+  let { username, email } = req.body;
+
+  try {
+    const emailExists = await User.findOne({ where: { email } });
+
+    if (emailExists) {
+      return res.status(409).send({ err: "Email already registered" });
+    }
+
+    const user = await User.create({
+      username,
+      email,
+      // phone,
+      registrationType: "google",
+      isActive: true,
+    });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    const data = {
+      token,
+      id: user.id,
+    };
+
+    return res.status(201).json({ data });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ err });
+  }
+};
+
 exports.postVerificationToken = async (req, res) => {
   const { token } = req.body;
   try {
@@ -93,9 +149,6 @@ exports.postVerificationToken = async (req, res) => {
     if (!validToken) {
       return res.status(400).send({ err: "Invalid token" });
     }
-
-    console.log(validToken);
-
     const user = await User.findByPk(validToken.userId);
     if (user.isActive) {
       return res
@@ -103,11 +156,23 @@ exports.postVerificationToken = async (req, res) => {
         .send({ err: "Account already activated please login" });
     }
 
+    if (user.registrationType === "google")
+      return res.status(404).send({ err: "Cannot perform action" });
+
     user.isActive = true;
     await user.save();
     await validToken.destroy();
 
-    return res.status(200).send({ msg: "Account activated" });
+    const jwtToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    const data = {
+      token: jwtToken,
+      id: user.id,
+    };
+
+    return res.status(200).json({ data });
   } catch (err) {
     console.log(err);
     return res.status(500).send({ err });
@@ -120,6 +185,8 @@ exports.resendVerificationToken = async (req, res) => {
   try {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(401).send({ err: "Email not registered" });
+    if (user.registrationType === "gmail")
+      return res.status(404).send({ err: "Cannot perform action" });
     if (user.isActive)
       return res
         .status(400)
@@ -148,6 +215,8 @@ exports.forgotPassword = async (req, res) => {
     if (!user) return res.status(404).send({ err: "User not found" });
     if (!user.isActive)
       return res.status(404).send({ err: "Account not activated" });
+    if (user.registrationType === "google")
+      return res.status(404).send({ err: "Cannot perform action" });
     const token = await user.generatePasswordResetToken();
     // send email
     await sendEmail(

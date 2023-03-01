@@ -115,7 +115,7 @@ exports.updatePersonalInformation = async (req, res) => {
 
   if (!email) return res.status(400).send({ err: "Email is required" });
 
-  if (!phone) return res.status(400).send({ err: "Phone number is required" });
+  // if (!phone) return res.status(400).send({ err: "Phone number is required" });
 
   try {
     const user = await User.findByPk(req.user.id);
@@ -123,10 +123,12 @@ exports.updatePersonalInformation = async (req, res) => {
     if (!user.isActive)
       return res.status(400).send({ err: "Account not activated" });
 
-    const data = await user.update({
-      email,
-      phone,
-    });
+    // const data = await user.update({
+    //   email,
+    //   phone,
+    // });
+
+    const data = { email, phone };
 
     return res.status(200).json({ data });
   } catch (err) {
