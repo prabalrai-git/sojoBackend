@@ -4,6 +4,7 @@ const { handleText } = require("./../../helper/text");
 const fs = require("fs");
 const cloudinary = require("cloudinary");
 const { Op } = require("sequelize");
+const { Sequelize } = require("../../db/db");
 
 exports.getAllNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -21,6 +22,11 @@ exports.getAllNews = async (req, res) => {
         {
           model: Topic,
           as: "topics",
+          attributes: [
+            "id",
+            "name",
+            [Sequelize.literal('"topics->news_topic"."order"'), "order", "ASC"],
+          ],
         },
         {
           model: Occupation,
@@ -35,7 +41,6 @@ exports.getAllNews = async (req, res) => {
     const totalPages = Math.ceil(count / limit);
     const nextPage = page < totalPages ? page + 1 : null;
     const prevPage = page > 1 ? page - 1 : null;
-
     return res.status(200).json({
       data: data,
       pagination: {
@@ -108,19 +113,11 @@ exports.postNews = async (req, res) => {
   title = handleText(title);
   previewText = handleText(previewText);
 
-  // if (title.length > 126) {
-  //   return res.status(400).send({ err: "Title too long" });
-  // }
-
-  // if (previewText.length > 161) {
-  //   return res.status(400).send({ err: "Preview text is too long" });
-  // }
-
   try {
     const upload = await cloudinary.v2.uploader.upload(req.file.path);
     fs.unlinkSync(req.file.path);
 
-    const newsData = await News.create({
+    let newsData = await News.create({
       title,
       previewText,
       news,
@@ -134,12 +131,17 @@ exports.postNews = async (req, res) => {
       publicId: upload.public_id,
     });
 
+    ageGroup = Array.isArray(ageGroup) ? ageGroup : [ageGroup];
+    gender = Array.isArray(gender) ? gender : [gender];
     const topicsArr = Array.isArray(topic) ? topic : [topic];
-    const topicIds = topicsArr.map((t) => t);
+    const topicIds = topicsArr.map((t) => t); // extract the topic ids
+
+    const orderArr = topicsArr.map((t, index) => {
+      return { topicId: t, order: index + 1 };
+    });
+
     await newsData.addTopics(topicIds, {
-      through: {
-        order: topicsArr.map((t) => t.order || 0),
-      },
+      through: orderArr,
     });
 
     const occupationArr = Array.isArray(occupation) ? occupation : [occupation];
@@ -153,7 +155,7 @@ exports.postNews = async (req, res) => {
           as: "topics",
           attributes: ["id", "name"],
           through: {
-            attributes: [],
+            attributes: ["order"], // include the order value in the result
           },
         },
         {
@@ -211,15 +213,6 @@ exports.updateNews = async (req, res) => {
   title = handleText(title);
   previewText = handleText(previewText);
 
-  // if (title.length > 126) {
-  //   return res.status(400).send({ err: "Title too long" });
-  // }
-
-  // if (previewText.length > 161) {
-  //   return res.status(400).send({ err: "Preview text is too long" });
-  // }
-
-  let upload;
   try {
     let newsData = await News.findByPk(id);
 
@@ -253,8 +246,15 @@ exports.updateNews = async (req, res) => {
     await newsData.setTopics([]);
 
     const topicsArr = Array.isArray(topic) ? topic : [topic];
-    const topicIds = topicsArr.map((t) => t);
-    await newsData.addTopics(topicIds);
+    const topicIds = topicsArr.map((t) => t); // extract the topic ids
+
+    const orderArr = topicsArr.map((t, index) => {
+      return { topicId: t, order: index + 1 };
+    });
+
+    await newsData.addTopics(topicIds, {
+      through: orderArr,
+    });
 
     const occupationArr = Array.isArray(occupation) ? occupation : [occupation];
     const occupationIds = occupationArr.map((t) => t);

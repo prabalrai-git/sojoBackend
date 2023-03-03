@@ -3,6 +3,7 @@ const Occupation = require("./Occupation.model");
 const Token = require("./Token.model");
 const Topic = require("./Topic.model");
 const User = require("./User.model");
+const news_topic = require("./news_topic");
 
 // relationships
 Token.belongsTo(User);
@@ -15,7 +16,7 @@ User.belongsToMany(Topic, {
 
 // define the many-to-many association between News and Topic
 News.belongsToMany(Topic, {
-  through: "news_topic",
+  through: news_topic,
 });
 
 // define the many-to-many association between News and Occupation
