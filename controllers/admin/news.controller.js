@@ -22,11 +22,6 @@ exports.getAllNews = async (req, res) => {
         {
           model: Topic,
           as: "topics",
-          attributes: [
-            "id",
-            "name",
-            [Sequelize.literal('"topics->news_topic"."order"'), "order", "ASC"],
-          ],
         },
         {
           model: Occupation,
@@ -147,9 +142,6 @@ exports.postNews = async (req, res) => {
           model: Topic,
           as: "topics",
           attributes: ["id", "name"],
-          through: {
-            attributes: ["order"], // include the order value in the result
-          },
         },
         {
           model: Occupation,
@@ -245,7 +237,7 @@ exports.updateNews = async (req, res) => {
       // id: t,
       // news_topic: { order: index },
     }));
-    console.log(topicData);
+
     await newsData.addTopics(topicData);
 
     const occupationArr = Array.isArray(occupation) ? occupation : [occupation];
