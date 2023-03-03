@@ -134,16 +134,9 @@ exports.postNews = async (req, res) => {
     ageGroup = Array.isArray(ageGroup) ? ageGroup : [ageGroup];
     gender = Array.isArray(gender) ? gender : [gender];
     const topicsArr = Array.isArray(topic) ? topic : [topic];
-    const topicIds = topicsArr.map((t) => t); // extract the topic ids
-
-    const orderArr = topicsArr.map((t, index) => {
-      return { topicId: t, order: index + 1 };
-    });
-
-    await newsData.addTopics(topicIds, {
-      through: orderArr,
-    });
-
+    const topicIds = topicsArr.map((t) => t);
+    await newsData.addTopics(topicIds);
+    console.log(topicsArr);
     const occupationArr = Array.isArray(occupation) ? occupation : [occupation];
     const occupationIds = occupationArr.map((t) => t);
     await newsData.addOccupations(occupationIds);
@@ -246,15 +239,14 @@ exports.updateNews = async (req, res) => {
     await newsData.setTopics([]);
 
     const topicsArr = Array.isArray(topic) ? topic : [topic];
-    const topicIds = topicsArr.map((t) => t); // extract the topic ids
+    const topicIds = topicsArr.map((t) => t);
 
-    const orderArr = topicsArr.map((t, index) => {
-      return { topicId: t, order: index + 1 };
-    });
-
-    await newsData.addTopics(topicIds, {
-      through: orderArr,
-    });
+    const topicData = topicIds.map((t, index) => ({
+      // id: t,
+      // news_topic: { order: index },
+    }));
+    console.log(topicData);
+    await newsData.addTopics(topicData);
 
     const occupationArr = Array.isArray(occupation) ? occupation : [occupation];
     const occupationIds = occupationArr.map((t) => t);
