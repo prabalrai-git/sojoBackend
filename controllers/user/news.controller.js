@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { User, News, Topic, Occupation } = require("./../../models/");
+const { User, News, Topic, Occupation, NewsTopic } = require("./../../models/");
 
 exports.getNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -10,6 +10,7 @@ exports.getNews = async (req, res) => {
       include: [
         {
           model: Topic,
+          as: "topics",
         },
       ],
       order: [["id", "DESC"]],
@@ -25,6 +26,11 @@ exports.getNews = async (req, res) => {
               [Op.in]: topicIds,
             },
           },
+          through: {
+            model: NewsTopic,
+            attributes: ["order"],
+          },
+          order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
         },
         { model: Occupation },
       ],
@@ -76,24 +82,31 @@ exports.getSimilarNews = async (req, res) => {
       return res.status(404).send({ err: "Category not found" });
 
     const data = await News.findAll({
-      include: [
-        {
-          model: Topic,
-          where: {
-            id: {
-              [Op.in]: topicIds,
-            },
-          },
-        },
-        {
-          model: Occupation,
-        },
-      ],
       where: {
         id: {
           [Op.ne]: id,
         },
       },
+      include: [
+        {
+          model: Topic,
+          as: "topics",
+          where: {
+            id: {
+              [Op.in]: topicIds,
+            },
+          },
+          through: {
+            model: NewsTopic,
+            attributes: ["order"],
+          },
+          order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
+        },
+        {
+          model: Occupation,
+        },
+      ],
+
       order: [["id", "DESC"]],
       limit: 9,
     });

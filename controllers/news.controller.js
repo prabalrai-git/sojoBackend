@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { News, Topic, Occupation } = require("./../models/");
+const { News, Topic, Occupation, NewsTopic } = require("./../models/");
 
 exports.getTopNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -13,6 +13,11 @@ exports.getTopNews = async (req, res) => {
         {
           model: Topic,
           as: "topics",
+          through: {
+            model: NewsTopic,
+            attributes: ["order"],
+          },
+          order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
         },
         {
           model: Occupation,
@@ -50,6 +55,11 @@ exports.getNewsById = async (req, res) => {
         {
           model: Topic,
           as: "topics",
+          through: {
+            model: NewsTopic,
+            attributes: ["order"],
+          },
+          order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
         },
         {
           model: Occupation,
@@ -84,9 +94,15 @@ exports.getSimilarNews = async (req, res) => {
       include: [
         {
           model: Topic,
+          as: "topics",
           where: {
             id: categoryExists.id,
           },
+          through: {
+            model: NewsTopic,
+            attributes: ["order"],
+          },
+          order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
         },
         {
           model: Occupation,
@@ -131,6 +147,11 @@ exports.getNewsByCategoryId = async (req, res) => {
           where: {
             id: categoryExists.id,
           },
+          through: {
+            model: NewsTopic,
+            attributes: ["order"],
+          },
+          order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
         },
         {
           model: Occupation,

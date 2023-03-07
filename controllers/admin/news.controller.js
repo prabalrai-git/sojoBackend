@@ -1,10 +1,9 @@
-const { News, Topic, Occupation } = require("./../../models/");
+const { News, Topic, Occupation, NewsTopic } = require("./../../models/");
 const { cloudinaryConfig } = require("./../../helper/cloudinary");
 const { handleText } = require("./../../helper/text");
 const fs = require("fs");
 const cloudinary = require("cloudinary");
 const { Op } = require("sequelize");
-const { Sequelize } = require("../../db/db");
 
 exports.getAllNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -22,6 +21,11 @@ exports.getAllNews = async (req, res) => {
         {
           model: Topic,
           as: "topics",
+          through: {
+            model: NewsTopic,
+            attributes: ["order"],
+          },
+          order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
         },
         {
           model: Occupation,
@@ -36,6 +40,7 @@ exports.getAllNews = async (req, res) => {
     const totalPages = Math.ceil(count / limit);
     const nextPage = page < totalPages ? page + 1 : null;
     const prevPage = page > 1 ? page - 1 : null;
+
     return res.status(200).json({
       data: data,
       pagination: {
@@ -59,6 +64,11 @@ exports.getNewsById = async (req, res) => {
         {
           model: Topic,
           as: "topics",
+          through: {
+            model: NewsTopic,
+            attributes: ["order"],
+            order: [["order", "ASC"]],
+          },
         },
         {
           model: Occupation,
@@ -128,10 +138,15 @@ exports.postNews = async (req, res) => {
 
     ageGroup = Array.isArray(ageGroup) ? ageGroup : [ageGroup];
     gender = Array.isArray(gender) ? gender : [gender];
+
     const topicsArr = Array.isArray(topic) ? topic : [topic];
-    const topicIds = topicsArr.map((t) => t);
-    await newsData.addTopics(topicIds);
-    console.log(topicsArr);
+    const topicOrders = topicsArr.map((t, i) => ({
+      topicId: t,
+      newsId: newsData.id,
+      order: i,
+    }));
+    await NewsTopic.bulkCreate(topicOrders);
+
     const occupationArr = Array.isArray(occupation) ? occupation : [occupation];
     const occupationIds = occupationArr.map((t) => t);
     await newsData.addOccupations(occupationIds);
@@ -231,14 +246,13 @@ exports.updateNews = async (req, res) => {
     await newsData.setTopics([]);
 
     const topicsArr = Array.isArray(topic) ? topic : [topic];
-    const topicIds = topicsArr.map((t) => t);
-
-    const topicData = topicIds.map((t, index) => ({
-      // id: t,
-      // news_topic: { order: index },
+    const topicOrders = topicsArr.map((t, i) => ({
+      topicId: t,
+      newsId: newsData.id,
+      order: i,
     }));
 
-    await newsData.addTopics(topicData);
+    await NewsTopic.bulkCreate(topicOrders);
 
     const occupationArr = Array.isArray(occupation) ? occupation : [occupation];
     const occupationIds = occupationArr.map((t) => t);
