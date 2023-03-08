@@ -35,7 +35,9 @@ exports.googleLogin = async (req, res) => {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).send({ err: "Email not registered" });
     if (user.registrationType !== "google")
-      return res.status(400).send({ err: "Email not registered" });
+      return res.status(400).send({
+        err: "Account registered via email. Please sign in through email",
+      });
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
@@ -74,7 +76,6 @@ exports.signup = async (req, res) => {
       const token = await Token.findOne({
         where: { user_id: emailExists.id },
       });
-      console.log(token);
       if (token) {
         await Token.destroy({
           where: { user_id: emailExists.id },
