@@ -12,11 +12,9 @@ exports.login = async (req, res) => {
     if (!user) return res.status(400).send({ err: "Invalid email" });
     if (!user.isActive) return res.status(400).send({ err: "not_active" });
     if (!user.password)
-      return res
-        .status(400)
-        .send({
-          err: "Account registered via google. Please login through gmail",
-        });
+      return res.status(400).send({
+        err: "Account registered via google. Please login through gmail ",
+      });
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(400).send({ err: "Invalid Password" });
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
