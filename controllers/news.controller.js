@@ -196,3 +196,34 @@ exports.getNewsByCategoryId = async (req, res) => {
     return res.status(500).send({ err });
   }
 };
+
+exports.getNewsBySearchTerm = async (req, res) => {
+  const { term } = req.params;
+  try {
+    const data = await News.findAll({
+      where: {
+        [Op.or]: [{ title: { [Op.like]: "%" + term + "%" } }],
+      },
+      include: [
+        {
+          model: Topic,
+          as: "topics",
+          through: {
+            model: NewsTopic,
+            attributes: ["order"],
+          },
+          order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
+        },
+        {
+          model: Occupation,
+          as: "occupations",
+        },
+      ],
+      order: [["id", "DESC"]],
+    });
+    return res.status(200).json({ data });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ err });
+  }
+};

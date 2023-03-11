@@ -1,15 +1,44 @@
 const router = require("express").Router();
 const controller = require("./../../controllers/admin/news.controller");
 const multer = require("./../../middlewares/multer");
+const passport = require("passport");
+const { isAdmin } = require("./../../middlewares/role");
 
-router.get("/", controller.getAllNews);
+router.get(
+  "/",
+  passport.authenticate("jwt", { session: false }),
+  isAdmin,
+  controller.getAllNews
+);
 
-router.get("/:id", controller.getNewsById);
+router.get(
+  "/:id",
+  passport.authenticate("jwt", { session: false }),
+  isAdmin,
+  controller.getNewsById
+);
 
-router.post("/", multer.single("image"), controller.postNews);
+router.post(
+  "/",
+  passport.authenticate("jwt", { session: false }),
+  isAdmin,
+  multer.single("image"),
+  controller.postNews
+);
 
-router.patch("/:id", multer.single("image"), controller.updateNews);
+router.patch(
+  "/:id",
+  passport.authenticate("jwt", { session: false }),
+  isAdmin,
+  multer.single("image"),
+  controller.updateNews
+);
 
-router.delete("/:id", controller.deleteNews);
+router.delete(
+  "/:id",
+  passport.authenticate("jwt", { session: false }),
+  isAdmin,
+  controller.deleteNews
+);
 
 module.exports = router;

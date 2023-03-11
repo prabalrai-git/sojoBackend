@@ -1,8 +1,20 @@
 const router = require("express").Router();
 const controller = require("./../../controllers/admin/title.controller");
+const passport = require("passport");
+const { isAdmin } = require("./../../middlewares/role");
 
-router.post("/", controller.postTitle);
+router.post(
+  "/",
+  passport.authenticate("jwt", { session: false }),
+  isAdmin,
+  controller.postTitle
+);
 
-router.get("/", controller.getTitle);
+router.get(
+  "/",
+  passport.authenticate("jwt", { session: false }),
+  isAdmin,
+  controller.getTitle
+);
 
 module.exports = router;
