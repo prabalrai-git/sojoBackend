@@ -4,6 +4,13 @@ const passport = require("passport");
 const { isUser } = require("./../../middlewares/role");
 
 router.get(
+  "/global",
+  passport.authenticate("jwt", { session: false }),
+  isUser,
+  controller.getGlobalNews
+);
+
+router.get(
   "/",
   passport.authenticate("jwt", { session: false }),
   isUser,
