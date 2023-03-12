@@ -12,8 +12,7 @@ router.post(
 
 router.get(
   "/",
-  passport.authenticate("jwt", { session: false }),
-  isAdmin,
+
   controller.getTitle
 );
 

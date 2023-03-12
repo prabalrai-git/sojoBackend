@@ -10,8 +10,9 @@ exports.login = async (req, res) => {
   try {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).send({ err: "Invalid email" });
-    if (!user.isActive) return res.status(400).send({ err: "not_active" });
-    if (!user.password)
+    if (user.role !== "admin" && !user.isActive)
+      return res.status(400).send({ err: "not_active" });
+    if (user.role !== "admin" && !user.password)
       return res.status(400).send({
         err: "Account registered via google. Please login through gmail ",
       });
@@ -24,6 +25,7 @@ exports.login = async (req, res) => {
     const data = {
       token,
       id: user.id,
+      role: user.role,
     };
     return res.status(200).json({ data });
   } catch (err) {
