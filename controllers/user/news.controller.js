@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, literal } = require("sequelize");
 const { User, News, Topic, Occupation, NewsTopic } = require("./../../models/");
 
 exports.getGlobalNews = async (req, res) => {
@@ -13,7 +13,6 @@ exports.getGlobalNews = async (req, res) => {
           as: "topics",
         },
       ],
-      order: [["id", "DESC"]],
     });
 
     const selectedTopicIds = user.topics.map((topic) => topic.id);
@@ -21,8 +20,20 @@ exports.getGlobalNews = async (req, res) => {
     const notSelectedTopics = allTopics.filter(
       (topic) => !selectedTopicIds.includes(topic.id)
     );
-    const orderedTopics = [...notSelectedTopics, ...user.topics];
-    const topicIds = orderedTopics.map((topic) => topic.id);
+
+    // Shuffle notSelectedTopics array randomly
+    for (let i = notSelectedTopics.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [notSelectedTopics[i], notSelectedTopics[j]] = [
+        notSelectedTopics[j],
+        notSelectedTopics[i],
+      ];
+    }
+
+    const topicIds = [...notSelectedTopics, ...user.topics].map(
+      (topic) => topic.id
+    );
+
     const data = await News.findAll({
       limit: limit,
       offset: offset,
@@ -38,11 +49,10 @@ exports.getGlobalNews = async (req, res) => {
             model: NewsTopic,
             attributes: ["order"],
           },
-          // order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
         },
         { model: Occupation },
       ],
-      // order: [["id", "DESC"]],
+      order: literal("rand()"),
     });
 
     const count = await News.count();
