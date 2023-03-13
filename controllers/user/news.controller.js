@@ -91,6 +91,23 @@ exports.getNews = async (req, res) => {
     });
     const topicIds = user.topics.map((topic) => topic.id);
 
+    const whereClause = {
+      [Op.and]: {
+        id: {
+          [Op.not]: null,
+        },
+        [Op.or]: [
+          {
+            isNSFW: false,
+          },
+          {
+            isNSFW: true,
+            id: !user.skipNSFW ? { [Op.not]: null } : null,
+          },
+        ],
+      },
+    };
+
     const data = await News.findAll({
       include: [
         {
@@ -111,6 +128,7 @@ exports.getNews = async (req, res) => {
       limit: limit,
       offset: offset,
       order: [["id", "DESC"]],
+      where: whereClause,
     });
 
     const count = await News.count({
@@ -124,6 +142,7 @@ exports.getNews = async (req, res) => {
           },
         },
       ],
+      where: whereClause,
     });
 
     const totalPages = Math.ceil(count / limit);
