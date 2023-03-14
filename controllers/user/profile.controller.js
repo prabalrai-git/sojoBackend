@@ -29,9 +29,9 @@ exports.getProfile = async (req, res) => {
 
 exports.completeProfile = async (req, res) => {
   let { gender, occupation, ageGroup, skipPolitical, skipNSFW } = req.body;
-
+  console.log(req.body);
   gender = gender && gender.trim();
-  occupation = occupation && occupation.trim();
+  // occupation = occupation && occupation.trim();
 
   if (!occupation) {
     return res.status(400).send({ err: "Occupation is required" });
