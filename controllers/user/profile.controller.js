@@ -193,8 +193,6 @@ exports.updatePassword = async (req, res) => {
     res.status(500).json({ err: "Server error" });
   }
 };
-
-// add topic
 exports.addTopic = async (req, res) => {
   let { id } = req.params;
   if (!id) return res.status(400).send({ err: "Topic is required" });
@@ -205,11 +203,15 @@ exports.addTopic = async (req, res) => {
     if (!user.isActive)
       return res.status(400).send({ err: "Account not activated" });
 
-    const topicExists = await Topic.findByPk(id);
-    if (!topicExists)
-      return res.status(404).send({ err: "Topic doesn't exist" });
+    const topicExists = await user.hasTopic(id);
+    if (topicExists) {
+      await user.removeTopic(id);
+    }
 
-    await user.addTopics(id);
+    const topic = await Topic.findByPk(id);
+    if (!topic) return res.status(404).send({ err: "Topic doesn't exist" });
+
+    await user.addTopic(topic);
 
     const data = await user.save();
     return res.status(200).json({ data });
