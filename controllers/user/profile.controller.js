@@ -193,25 +193,34 @@ exports.updatePassword = async (req, res) => {
     res.status(500).json({ err: "Server error" });
   }
 };
+
 exports.addTopic = async (req, res) => {
   let { id } = req.params;
   if (!id) return res.status(400).send({ err: "Topic is required" });
 
   try {
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findByPk(req.user.id, {
+      include: ["topics"],
+    });
     if (!user) return res.status(404).send({ err: "User not found" });
     if (!user.isActive)
       return res.status(400).send({ err: "Account not activated" });
 
-    const topicExists = await user.hasTopic(id);
-    if (topicExists) {
-      await user.removeTopic(id);
-    }
-
     const topic = await Topic.findByPk(id);
     if (!topic) return res.status(404).send({ err: "Topic doesn't exist" });
 
-    await user.addTopic(topic);
+    let topicExists = false;
+    user.topics.forEach((topic) => {
+      if (topic.id === Number(id)) {
+        topicExists = true;
+      }
+    });
+    if (topicExists) {
+      console.log("tryng to remove the topic, id asdasd");
+      await user.removeTopic(id);
+    } else {
+      await user.addTopic(topic);
+    }
 
     const data = await user.save();
     return res.status(200).json({ data });
