@@ -13,7 +13,10 @@ exports.postTopic = async (req, res) => {
   if (!req.file) return res.status(400).send({ err: "Image is required" });
 
   try {
-    const upload = await cloudinary.v2.uploader.upload(req.file.path);
+    const upload = await cloudinary.v2.uploader.upload(req.file.path, {
+      quality: "auto",
+      fetch_format: "auto",
+    });
     fs.unlinkSync(req.file.path);
     const topicExists = await Topic.findOne({ where: { name } });
     if (topicExists)
@@ -47,7 +50,10 @@ exports.updateTopic = async (req, res) => {
     const topic = await Topic.findByPk(id);
     if (!topic) return res.status(404).send({ err: "Topic not found" });
     if (req.file) {
-      const upload = await cloudinary.v2.uploader.upload(req.file.path);
+      const upload = await cloudinary.v2.uploader.upload(req.file.path, {
+        quality: "auto",
+        fetch_format: "auto",
+      });
       fs.unlinkSync(req.file.path);
 
       if (topic.publicId) {

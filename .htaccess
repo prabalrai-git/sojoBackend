@@ -1,0 +1,23 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home3/sojonews/backend.sojonews.com"
+PassengerBaseURI "/"
+PassengerNodejs "/home3/sojonews/nodevenv/backend.sojonews.com/14/bin/node"
+PassengerAppType node
+PassengerStartupFile index.js
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION BEGIN
+<IfModule Litespeed>
+SetEnv CLOUDINARY_CLOUD_NAME dkxsi7mmm
+SetEnv CLOUDINARY_API_KEY 484636217431346
+SetEnv CLOUDINARY_API_SECRET 5EVnV-ynHQu_sWpEeuYZiZz39Bw
+SetEnv JWT_SECRET asdasdasdasdasdasdasdasd1212
+SetEnv MAIL_HOST smtp.zeptomail.org
+SetEnv MAIL_USER emailapikey
+SetEnv MAIL_PASSWORD wSsVR60g/kT3C/p9zTT/dLgwyAkDAwj3Fkx12lD1uXL/Sv7H88c+nxWbAlT1GfVMRG9hEToVorIumBkJ1WUPjI8rzQ0EACiF9mqRe1U4J3x17qnvhDzPXGVcmhGJK4MBzw5vkmllGs0k+g==
+SetEnv MAIL_FROM lpapish97@gmail.com
+SetEnv PORT 9000
+SetEnv DATABASE_PASSWORD Kh._Clr.Yi~k
+SetEnv DATABASE_USERNAME sojonews_news
+SetEnv DATABASE_NAME sojonews_news
+</IfModule>
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION END

@@ -236,7 +236,7 @@ exports.forgotPassword = async (req, res) => {
           href=http://localhost:3000/auth/forgot-password/${token}
           target="_blank"
         >
-          Rest Password
+          Reset Password
         </a>
       </div>`
     );

@@ -56,6 +56,27 @@ exports.getAllNews = async (req, res) => {
   }
 };
 
+exports.getNewsByTitle = async (req, res) => {
+  const search = req.params.search || "";
+
+  try {
+    const searchWords = search.split(/\s+/); // split search string into individual words
+
+    const whereClauses = searchWords.map((word) => ({
+      title: { [Op.like]: "%" + word + "%" },
+    }));
+
+    const data = await News.findAll({
+      where: { [Op.and]: whereClauses },
+    });
+
+    return res.status(200).json({ data });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ err });
+  }
+};
+
 exports.getNewsById = async (req, res) => {
   const { id } = req.params;
   try {
@@ -119,7 +140,10 @@ exports.postNews = async (req, res) => {
   previewText = handleText(previewText);
 
   try {
-    const upload = await cloudinary.v2.uploader.upload(req.file.path);
+    const upload = await cloudinary.v2.uploader.upload(req.file.path, {
+      quality: "auto",
+      fetch_format: "auto",
+    });
     fs.unlinkSync(req.file.path);
 
     let newsData = await News.create({
@@ -221,7 +245,10 @@ exports.updateNews = async (req, res) => {
     }
 
     if (req.file) {
-      const upload = await cloudinary.v2.uploader.upload(req.file.path);
+      const upload = await cloudinary.v2.uploader.upload(req.file.path, {
+        quality: "auto",
+        fetch_format: "auto",
+      });
       fs.unlinkSync(req.file.path);
 
       if (newsData.publicId) {

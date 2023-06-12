@@ -12,6 +12,13 @@ router.get(
 );
 
 router.get(
+  "/search/:search",
+  passport.authenticate("jwt", { session: false }),
+  isAdmin,
+  controller.getNewsByTitle
+);
+
+router.get(
   "/:id",
   passport.authenticate("jwt", { session: false }),
   isAdmin,
