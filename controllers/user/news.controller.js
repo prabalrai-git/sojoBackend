@@ -1,5 +1,12 @@
 const { Op, literal } = require("sequelize");
-const { User, News, Topic, Occupation, NewsTopic } = require("./../../models/");
+const {
+  User,
+  News,
+  Topic,
+  Occupation,
+  NewsTopic,
+  Bookmark,
+} = require("./../../models/");
 
 exports.getGlobalNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -130,6 +137,44 @@ exports.getNews = async (req, res) => {
       order: [["id", "DESC"]],
       where: whereClause,
     });
+
+    let usersBookmarkedNews = await Bookmark.findAll({ id: req.user.id });
+
+    // return res.send(usersBookmarkedNews);
+
+    // for (let i = 0; i <= usersBookmarkedNews.length; i++) {
+    //   data.map((item) => {
+    //     return console.log(
+    //       "his is loggljkjlkjljljkljlkjljlk1111111111111111111111111111111111111111111111111111",
+    //       item.id,
+    //       usersBookmarkedNews[i]?.newsId
+    //     );
+    //     if (item.id) {
+    //       if (item?.id === usersBookmarkedNews[i]?.newsId) {
+    //         // return res.send(item);
+    //         item.dataValues.isBookmarkedByUser = true;
+    //       } else {
+    //         item.dataValues.isBookmarkedByUser = false;
+    //       }
+    //     }
+    //   });
+    // }
+
+    for (let i = 0; i <= data.length; i++) {
+      usersBookmarkedNews.map((item) => {
+        if (data[i]?.id && item?.newsId) {
+          if (data[i].id === item.newsId) {
+            data[i].dataValues.isBookmarkedByUser = true;
+          } else {
+            data[i].dataValues.isBookmarkedByUser = false;
+          }
+        }
+      });
+    }
+
+    // data.push(usersBookmarkedNews);
+
+    return res.json({ data: data });
 
     const count = await News.count({
       include: [

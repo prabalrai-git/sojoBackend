@@ -5,6 +5,7 @@ const Topic = require("./Topic.model");
 const User = require("./User.model");
 const HomeTitle = require("./HomeTitle");
 const NewsTopic = require("./news_topic");
+const Bookmark = require("./Bookmark.model");
 
 // relationships
 Token.belongsTo(User);
@@ -14,6 +15,8 @@ User.belongsToMany(Topic, {
   onDelete: "CASCADE",
   onUpdate: "CASCADE",
 });
+Bookmark.belongsTo(User);
+Bookmark.belongsTo(News);
 
 // define the many-to-many association between News and Topic
 News.belongsToMany(Topic, {
@@ -33,4 +36,5 @@ module.exports = {
   User,
   HomeTitle,
   NewsTopic,
+  Bookmark,
 };

@@ -1,4 +1,4 @@
-const { DataTypes } = require("sequelize");
+const { DataTypes, Sequelize } = require("sequelize");
 const sequelize = require("./../db/db");
 
 const News = sequelize.define(
@@ -46,7 +46,10 @@ const News = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
-
+    // boomarkedUserIds: {
+    //   type: DataTypes.ARRAY(Sequelize.INTEGER),
+    //   defaultValue: [],
+    // },
     ageGroup: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -65,6 +68,21 @@ const News = sequelize.define(
       },
       set: function (value) {
         this.setDataValue("gender", JSON.stringify(value));
+      },
+    },
+    isbookmarkedByUser: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return async function (userId) {
+          const bookmark = await Sequelize.models.Bookmark.findOne({
+            where: {
+              news_id: this.news_id,
+              userId: userId,
+              isActive: true,
+            },
+          });
+          return bookmark !== null;
+        };
       },
     },
   },
