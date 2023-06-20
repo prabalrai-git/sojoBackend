@@ -1,5 +1,11 @@
 const { Op } = require("sequelize");
-const { News, Topic, Occupation, NewsTopic } = require("./../models/");
+const {
+  News,
+  Topic,
+  Occupation,
+  NewsTopic,
+  Bookmark,
+} = require("./../models/");
 
 exports.getTopNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -67,10 +73,27 @@ exports.getNewsById = async (req, res) => {
         },
       ],
     });
+
     if (!data) return res.status(404).send({ err: "News not found" });
     await data.update({
       views: data.views + 1,
     });
+
+    let usersBookmarkedNews = await Bookmark.findAll({
+      where: { userId: req.query?.userId },
+    });
+
+    const foundBookmarkId = usersBookmarkedNews.find(
+      (item) => item.newsId === data.id && item.isActive
+    );
+    // return res.send(foundBookmarkId);
+
+    if (foundBookmarkId) {
+      data.dataValues.isBookmarkedByUser = true;
+    } else {
+      data.dataValues.isBookmarkedByUser = false;
+    }
+
     return res.status(200).json({ data });
   } catch (err) {
     console.log(err);

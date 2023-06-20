@@ -138,9 +138,14 @@ exports.getNews = async (req, res) => {
       where: whereClause,
     });
 
-    let usersBookmarkedNews = await Bookmark.findAll({ id: req.user.id });
+    let usersBookmarkedNews = await Bookmark.findAll({
+      where: { userId: req.query?.id },
+    });
 
-    // return res.send(usersBookmarkedNews);
+    // return res.send({
+    //   id: req.body.id,
+    //   usersBookmarkedNews: usersBookmarkedNews,
+    // });
 
     // for (let i = 0; i <= usersBookmarkedNews.length; i++) {
     //   data.map((item) => {
@@ -160,21 +165,41 @@ exports.getNews = async (req, res) => {
     //   });
     // }
 
-    for (let i = 0; i <= data.length; i++) {
-      usersBookmarkedNews.map((item) => {
-        if (data[i]?.id && item?.newsId) {
-          if (data[i].id === item.newsId) {
-            data[i].dataValues.isBookmarkedByUser = true;
-          } else {
-            data[i].dataValues.isBookmarkedByUser = false;
-          }
-        }
-      });
-    }
+    // return res.send({ usersBookmarkedNews });
 
+    var info = [];
+
+    for (let i = 0; i < data.length; i++) {
+      // usersBookmarkedNews.forEach((item) => {
+      //   if (data[i]?.id && item?.newsId) {
+      //     data[i].dataValues.isBookmarkedByUser =
+      //       data[i].id === item.newsId && item.isActive ? true : false;
+      //   }
+      // });
+      const foundBookmarkId = usersBookmarkedNews.find(
+        (item) => item.newsId === data[i].id && item.isActive
+      );
+      if (foundBookmarkId) {
+        data[i].dataValues.isBookmarkedByUser = true;
+      } else {
+        data[i].dataValues.isBookmarkedByUser = false;
+      }
+    }
+    //   usersBookmarkedNews.map((item) => {
+    //     if (data[i]?.id && item?.newsId) {
+    //       // info.push(item);
+    //       if (data[i].id === item.newsId && item.isActive) {
+    //         return (data[i].dataValues.isBookmarkedByUser = true);
+    //       } else {
+    //         return (data[i].dataValues.isBookmarkedByUser = false);
+    //       }
+    //     }
+    //   });
+    // }
+    // return res.send(info);
     // data.push(usersBookmarkedNews);
 
-    return res.json({ data: data });
+    // return res.json({ data: data });
 
     const count = await News.count({
       include: [

@@ -62,7 +62,7 @@ exports.toogleOrAddBookmark = async (req, res) => {
 
     if (created) {
       return res
-        .status(404)
+        .status(201)
         .json({ msg: "Bookmark added", bookmark: bookmark });
     } else {
       await bookmark.update({ isActive: !bookmark.isActive });
