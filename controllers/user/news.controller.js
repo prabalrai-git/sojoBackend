@@ -61,6 +61,20 @@ exports.getGlobalNews = async (req, res) => {
       ],
       order: literal("rand()"),
     });
+    let usersBookmarkedNews = await Bookmark.findAll({
+      where: { userId: req.query?.id },
+    });
+
+    for (let i = 0; i < data.length; i++) {
+      const foundBookmarkId = usersBookmarkedNews.find(
+        (item) => item.newsId === data[i].id && item.isActive
+      );
+      if (foundBookmarkId) {
+        data[i].dataValues.isBookmarkedByUser = true;
+      } else {
+        data[i].dataValues.isBookmarkedByUser = false;
+      }
+    }
 
     const count = await News.count();
     const totalPages = Math.ceil(count / limit);
@@ -142,40 +156,7 @@ exports.getNews = async (req, res) => {
       where: { userId: req.query?.id },
     });
 
-    // return res.send({
-    //   id: req.body.id,
-    //   usersBookmarkedNews: usersBookmarkedNews,
-    // });
-
-    // for (let i = 0; i <= usersBookmarkedNews.length; i++) {
-    //   data.map((item) => {
-    //     return console.log(
-    //       "his is loggljkjlkjljljkljlkjljlk1111111111111111111111111111111111111111111111111111",
-    //       item.id,
-    //       usersBookmarkedNews[i]?.newsId
-    //     );
-    //     if (item.id) {
-    //       if (item?.id === usersBookmarkedNews[i]?.newsId) {
-    //         // return res.send(item);
-    //         item.dataValues.isBookmarkedByUser = true;
-    //       } else {
-    //         item.dataValues.isBookmarkedByUser = false;
-    //       }
-    //     }
-    //   });
-    // }
-
-    // return res.send({ usersBookmarkedNews });
-
-    var info = [];
-
     for (let i = 0; i < data.length; i++) {
-      // usersBookmarkedNews.forEach((item) => {
-      //   if (data[i]?.id && item?.newsId) {
-      //     data[i].dataValues.isBookmarkedByUser =
-      //       data[i].id === item.newsId && item.isActive ? true : false;
-      //   }
-      // });
       const foundBookmarkId = usersBookmarkedNews.find(
         (item) => item.newsId === data[i].id && item.isActive
       );
@@ -185,21 +166,6 @@ exports.getNews = async (req, res) => {
         data[i].dataValues.isBookmarkedByUser = false;
       }
     }
-    //   usersBookmarkedNews.map((item) => {
-    //     if (data[i]?.id && item?.newsId) {
-    //       // info.push(item);
-    //       if (data[i].id === item.newsId && item.isActive) {
-    //         return (data[i].dataValues.isBookmarkedByUser = true);
-    //       } else {
-    //         return (data[i].dataValues.isBookmarkedByUser = false);
-    //       }
-    //     }
-    //   });
-    // }
-    // return res.send(info);
-    // data.push(usersBookmarkedNews);
-
-    // return res.json({ data: data });
 
     const count = await News.count({
       include: [

@@ -148,6 +148,9 @@ exports.getSimilarNews = async (req, res) => {
 
 exports.getNewsByCategoryId = async (req, res) => {
   const { id } = req.params;
+
+  const { userId } = req.query;
+
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
   const limit = req.query.limit ? parseInt(req.query.limit) : 9;
   const offset = (page - 1) * limit;
@@ -183,7 +186,20 @@ exports.getNewsByCategoryId = async (req, res) => {
       ],
       order: [["id", "DESC"]],
     });
+    let usersBookmarkedNews = await Bookmark.findAll({
+      where: { userId: userId },
+    });
 
+    for (let i = 0; i < data.length; i++) {
+      const foundBookmarkId = usersBookmarkedNews.find(
+        (item) => item.newsId === data[i].id && item.isActive
+      );
+      if (foundBookmarkId) {
+        data[i].dataValues.isBookmarkedByUser = true;
+      } else {
+        data[i].dataValues.isBookmarkedByUser = false;
+      }
+    }
     const count = await News.count({
       where: {
         id: {

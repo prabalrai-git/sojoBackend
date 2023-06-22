@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const { sendEmail } = require("../../utils/nodemailer");
 
 exports.getProfile = async (req, res) => {
+  // return res.send({ id: req.user.id });
   try {
     const data = await User.findByPk(req.user.id, {
       include: [

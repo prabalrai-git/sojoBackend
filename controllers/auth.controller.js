@@ -99,16 +99,63 @@ exports.signup = async (req, res) => {
       password,
       // phone,
       registrationType: "email",
+      isActive: true,
     });
 
-    const token = generateToken(4);
-    await sendEmail(user.email, "Verify Account", token);
-    await Token.create({ userId: user.id, token });
-    const data = user.toJSON();
-    delete data.password;
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    // const token = generateToken(4);
+    // await sendEmail(user.email, "Verify Account", token);
+    // await Token.create({ userId: user.id, token });
+    // const data = user.toJSON();
+    // delete data.password;
+
+    const data = {
+      token,
+      id: user.id,
+    };
     return res.status(201).json({ data });
   } catch (err) {
     console.log(err);
+    return res.status(500).send({ err });
+  }
+};
+
+exports.googlePhoneLogin = async (req, res) => {
+  let { username, email } = req.body;
+  try {
+    const [user, created] = await User.findOrCreate({
+      where: { email },
+      defaults: {
+        username,
+        email,
+        registrationType: "google",
+        isActive: true,
+      },
+    });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    if (created) {
+      const data = {
+        token,
+        created,
+        user,
+        userAlereadyExits: false,
+      };
+
+      return res.status(201).json({ data });
+    } else {
+      const data = {
+        token,
+        user,
+        userAlereadyExits: true,
+      };
+      return res.status(201).json({ data });
+    }
+  } catch (error) {
     return res.status(500).send({ err });
   }
 };
