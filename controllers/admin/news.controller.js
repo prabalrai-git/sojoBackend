@@ -4,6 +4,8 @@ const { handleText } = require("./../../helper/text");
 const fs = require("fs");
 const cloudinary = require("cloudinary");
 const { Op } = require("sequelize");
+const sharp = require("sharp");
+const path = require("path");
 
 exports.getAllNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -107,6 +109,7 @@ exports.getNewsById = async (req, res) => {
 
 exports.postNews = async (req, res) => {
   cloudinaryConfig();
+
   let {
     title,
     previewText,
@@ -140,11 +143,19 @@ exports.postNews = async (req, res) => {
   previewText = handleText(previewText);
 
   try {
-    const upload = await cloudinary.v2.uploader.upload(req.file.path, {
-      quality: "auto",
-      fetch_format: "auto",
-    });
+    const compressedFilePath = path.join(
+      __dirname,
+      "../../",
+      "uploads",
+      "resized.webp"
+    );
+
+    await sharp(req.file.path).webp({ quality: 1 }).toFile(compressedFilePath);
+
+    // return res.send(compressedFile);
+    const upload = await cloudinary.v2.uploader.upload(compressedFilePath);
     fs.unlinkSync(req.file.path);
+    fs.unlinkSync(compressedFilePath);
 
     let newsData = await News.create({
       title,
@@ -245,11 +256,19 @@ exports.updateNews = async (req, res) => {
     }
 
     if (req.file) {
-      const upload = await cloudinary.v2.uploader.upload(req.file.path, {
-        quality: "auto",
-        fetch_format: "auto",
-      });
+      const compressedFilePath = path.join(
+        __dirname,
+        "../../",
+        "uploads",
+        "resized.webp"
+      );
+
+      await sharp(req.file.path)
+        .webp({ quality: 1 })
+        .toFile(compressedFilePath);
+      const upload = await cloudinary.v2.uploader.upload(compressedFilePath);
       fs.unlinkSync(req.file.path);
+      fs.unlinkSync(compressedFilePath);
 
       if (newsData.publicId) {
         await cloudinary.v2.uploader.destroy(newsData.publicId);
