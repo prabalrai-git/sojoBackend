@@ -260,6 +260,7 @@ exports.getNewsBySearchTerm = async (req, res) => {
       ],
       order: [["id", "DESC"]],
     });
+
     return res.status(200).json({ data });
   } catch (err) {
     console.log(err);
