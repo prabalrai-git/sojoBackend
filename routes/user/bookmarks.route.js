@@ -16,11 +16,19 @@ router.post(
   isUser,
   controller.toogleOrAddBookmark
 );
-router.post(
+router.get(
   "/getBookmarkedNews",
   passport.authenticate("jwt", { session: false }),
   isUser,
   controller.getBookmarkedNews
 );
+
+router.get(
+  "/getBookmarkedNewsByCategoryId/:id",
+  passport.authenticate("jwt", { session: false }),
+isUser,
+controller.getBookmarkedNewsByCategoryId
+
+)
 
 module.exports = router;

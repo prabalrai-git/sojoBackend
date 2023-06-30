@@ -79,19 +79,23 @@ exports.getNewsById = async (req, res) => {
       views: data.views + 1,
     });
 
-    let usersBookmarkedNews = await Bookmark.findAll({
-      where: { userId: req.query?.userId },
-    });
+    if(req.query.userId){
+      
+          let usersBookmarkedNews = await Bookmark.findAll({
+            where: { userId: req.query.userId },
+          });
+      
+          const foundBookmarkId = usersBookmarkedNews.find(
+            (item) => item.newsId === data.id && item.isActive
+          );
+          // return res.send(foundBookmarkId);
+      
+          if (foundBookmarkId) {
+            data.dataValues.isBookmarkedByUser = true;
+          } else {
+            data.dataValues.isBookmarkedByUser = false;
+          }
 
-    const foundBookmarkId = usersBookmarkedNews.find(
-      (item) => item.newsId === data.id && item.isActive
-    );
-    // return res.send(foundBookmarkId);
-
-    if (foundBookmarkId) {
-      data.dataValues.isBookmarkedByUser = true;
-    } else {
-      data.dataValues.isBookmarkedByUser = false;
     }
 
     return res.status(200).json({ data });
@@ -186,20 +190,24 @@ exports.getNewsByCategoryId = async (req, res) => {
       ],
       order: [["id", "DESC"]],
     });
-    let usersBookmarkedNews = await Bookmark.findAll({
-      where: { userId: userId },
-    });
-
-    for (let i = 0; i < data.length; i++) {
-      const foundBookmarkId = usersBookmarkedNews.find(
-        (item) => item.newsId === data[i].id && item.isActive
-      );
-      if (foundBookmarkId) {
-        data[i].dataValues.isBookmarkedByUser = true;
-      } else {
-        data[i].dataValues.isBookmarkedByUser = false;
+    
+    if(userId){
+      
+      let usersBookmarkedNews = await Bookmark.findAll({
+        where: { userId: userId },
+      });
+      for (let i = 0; i < data.length; i++) {
+        const foundBookmarkId = usersBookmarkedNews.find(
+          (item) => item.newsId === data[i].id && item.isActive
+        );
+        if (foundBookmarkId) {
+          data[i].dataValues.isBookmarkedByUser = true;
+        } else {
+          data[i].dataValues.isBookmarkedByUser = false;
+        }
       }
     }
+
     const count = await News.count({
       where: {
         id: {

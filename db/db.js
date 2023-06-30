@@ -7,5 +7,6 @@ module.exports = sequelize = new Sequelize(
   {
     dialect: "mysql",
     host: "localhost",
+    logging:false
   }
 );

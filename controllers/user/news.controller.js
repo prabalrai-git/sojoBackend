@@ -61,8 +61,9 @@ exports.getGlobalNews = async (req, res) => {
       ],
       order: literal("rand()"),
     });
+
     let usersBookmarkedNews = await Bookmark.findAll({
-      where: { userId: req.query?.id },
+      where: { userId: req.user.id },
     });
 
     for (let i = 0; i < data.length; i++) {
@@ -80,6 +81,7 @@ exports.getGlobalNews = async (req, res) => {
     const totalPages = Math.ceil(count / limit);
     const nextPage = page < totalPages ? page + 1 : null;
     const prevPage = page > 1 ? page - 1 : null;
+    
 
     return res.status(200).json({
       data: data,
@@ -153,7 +155,7 @@ exports.getNews = async (req, res) => {
     });
 
     let usersBookmarkedNews = await Bookmark.findAll({
-      where: { userId: req.query?.id },
+      where: { userId: req.user.id },
     });
 
     for (let i = 0; i < data.length; i++) {
@@ -239,6 +241,20 @@ exports.getSimilarNews = async (req, res) => {
       order: [["id", "DESC"]],
       limit: 9,
     });
+    let usersBookmarkedNews = await Bookmark.findAll({
+      where: { userId: req.user.id },
+    });
+
+    for (let i = 0; i < data.length; i++) {
+      const foundBookmarkId = usersBookmarkedNews.find(
+        (item) => item.newsId === data[i].id && item.isActive
+      );
+      if (foundBookmarkId) {
+        data[i].dataValues.isBookmarkedByUser = true;
+      } else {
+        data[i].dataValues.isBookmarkedByUser = false;
+      }
+    }
     return res.status(200).json({ data });
   } catch (err) {
     console.log(err);
