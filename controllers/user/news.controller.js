@@ -114,7 +114,7 @@ exports.getNews = async (req, res) => {
     });
     const topicIds = user.topics.map((topic) => topic.id);
 
-    const whereClause = {
+    const whereClasuse = {
       [Op.and]: {
         id: {
           [Op.not]: null,

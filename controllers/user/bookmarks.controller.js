@@ -85,29 +85,26 @@ exports.toogleOrAddBookmark = async (req, res) => {
 exports.getBookmarkedNews = async (req, res) => {
 
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
-  const limit = req.query.limit ? parseInt(req.query.limit) :9;
+  const limit = req.query.limit ? parseInt(req.query.limit) :3;
   const offset = (page - 1) * limit;
   const userId = req.user.id;
 
   try {
 
     const bookmarks = await Bookmark.findAll({
-
+      limit: limit,
+      offset: offset,
       where: { userId: userId, isActive: true },
       
     });
 
-    var BookmarkedNewsIds = [];
 
-    bookmarks.map((item) => BookmarkedNewsIds.push(item.newsId));
 
     var BookmarkedNews = [];
 
-    for (let i = 0; i <= BookmarkedNewsIds.length; i++) {
-      // return res.send(BookmarkedNewsIds);
-      const data = await News.findByPk(BookmarkedNewsIds[i], {
-        limit: limit,
-        offset: offset,
+    for (let i = 0; i < bookmarks.length; i++) {
+      const data = await News.findByPk(bookmarks[i]?.newsId, {
+    
         include: [
           {
             model: Topic,
@@ -128,8 +125,13 @@ exports.getBookmarkedNews = async (req, res) => {
     }
     // return res.send({ msg: "hello", BookmarkedNews });
 
-    
-    const count = BookmarkedNews.length;
+    const count = await Bookmark.count({
+  
+      where: { userId: userId, isActive: true },
+      
+    });
+
+
     const totalPages = Math.ceil(count / limit);
     const nextPage = page < totalPages ? page + 1 : null;
     const prevPage = page > 1 ? page - 1 : null;

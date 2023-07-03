@@ -247,9 +247,10 @@ exports.getNewsByCategoryId = async (req, res) => {
 exports.getNewsBySearchTerm = async (req, res) => {
   const { term } = req.params;
   try {
-    const data = await News.findAll({
+    const data1 = await News.findAll({
       where: {
         [Op.or]: [{ title: { [Op.like]: "%" + term + "%" } }],
+
       },
       include: [
         {
@@ -267,7 +268,34 @@ exports.getNewsBySearchTerm = async (req, res) => {
         },
       ],
       order: [["id", "DESC"]],
+      
     });
+// search on topic title 
+    const data2 = await News.findAll({
+    
+      include: [
+        {
+          model: Topic,
+          as: "topics",
+          through: {
+            model: NewsTopic,
+            attributes: ["order"],
+          },
+          order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
+          where: {
+            [Op.or]: [{ name: { [Op.like]: "%" + term + "%" } }],
+    
+          },
+        },
+    
+        {
+          model: Occupation,
+          as: "occupations",
+        },
+      ],
+    })
+
+    const data = data1.concat(data2)
 
     return res.status(200).json({ data });
   } catch (err) {
@@ -275,3 +303,5 @@ exports.getNewsBySearchTerm = async (req, res) => {
     return res.status(500).send({ err });
   }
 };
+
+
