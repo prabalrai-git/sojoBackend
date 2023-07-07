@@ -97,6 +97,7 @@ exports.getNewsById = async (req, res) => {
           model: Occupation,
           as: "occupations",
         },
+      
       ],
     });
     if (!data) return res.status(404).send({ err: "News not found" });
@@ -121,8 +122,11 @@ exports.postNews = async (req, res) => {
     isFeatured,
     isNSFW,
     isPaid,
+    states,
     sponsorURL,
   } = req.body;
+
+
 
   if (!title || title.trim().length <= 0)
     return res.status(400).send({ err: "Title cannot be empty" });
@@ -136,21 +140,27 @@ exports.postNews = async (req, res) => {
     return res.status(400).send({ err: "Age Group cannot be empty" });
   if (!occupation || occupation.length <= 0)
     return res.status(400).send({ err: "Occupation cannot be empty" });
+  if (!states || states.length <= 0)
+    return res.status(400).send({ err: "State cannot be empty" });
 
   if (!req.file) return res.status(400).send({ err: "Image is required" });
 
   title = handleText(title);
   previewText = handleText(previewText);
 
+ console.log(states.length,'11111111111111111111111111111111111111111111111111111111111111111111111111111');
+
+
+  // const stateNumber =  states.length >1? states.map(Number):[Number(states)];
   try {
     const compressedFilePath = path.join(
       __dirname,
       "../../",
       "uploads",
-      "resized.webp"
+      "resized.png"
     );
 
-    await sharp(req.file.path).webp({ quality: 1 }).toFile(compressedFilePath);
+    await sharp(req.file.path).png({ quality: 30 }).toFile(compressedFilePath);
 
     // return res.send(compressedFile);
     const upload = await cloudinary.v2.uploader.upload(compressedFilePath);
@@ -163,6 +173,7 @@ exports.postNews = async (req, res) => {
       news,
       ageGroup,
       gender,
+      states,
       isFeatured,
       isNSFW,
       isPaid,
@@ -173,6 +184,7 @@ exports.postNews = async (req, res) => {
 
     ageGroup = Array.isArray(ageGroup) ? ageGroup : [ageGroup];
     gender = Array.isArray(gender) ? gender : [gender];
+  states = Array.isArray(states)? states: [states];
 
     const topicsArr = Array.isArray(topic) ? topic : [topic];
     const topicOrders = topicsArr.map((t, i) => ({
@@ -181,6 +193,8 @@ exports.postNews = async (req, res) => {
       order: i,
     }));
     await NewsTopic.bulkCreate(topicOrders);
+
+
 
     const occupationArr = Array.isArray(occupation) ? occupation : [occupation];
     const occupationIds = occupationArr.map((t) => t);
@@ -225,9 +239,16 @@ exports.updateNews = async (req, res) => {
     isNSFW,
     isPaid,
     sponsorURL,
+    states,
     image,
   } = req.body;
   const { id } = req.params;
+
+//  return console.log(states,"2333333333333sdfsddddddddddddddddddddddddddddddd33333333333333333333333333333");
+
+  // const stateNumber = states.length >1? states?.map(Number):[Number(states)];
+
+
 
   if (!title || title.trim().length <= 0)
     return res.status(400).send({ err: "Title cannot be empty" });
@@ -241,6 +262,9 @@ exports.updateNews = async (req, res) => {
     return res.status(400).send({ err: "Age Group cannot be empty" });
   if (!occupation)
     return res.status(400).send({ err: "Occupation cannot be empty" });
+    if (!states || states.length <= 0)
+    return res.status(400).send({ err: "State cannot be empty" });
+
 
   if (!req.file && !image)
     return res.status(400).send({ err: "Image is required" });
@@ -260,11 +284,11 @@ exports.updateNews = async (req, res) => {
         __dirname,
         "../../",
         "uploads",
-        "resized.webp"
+        "resized.png"
       );
 
       await sharp(req.file.path)
-        .webp({ quality: 1 })
+        .png({ quality: 30 })
         .toFile(compressedFilePath);
       const upload = await cloudinary.v2.uploader.upload(compressedFilePath);
       fs.unlinkSync(req.file.path);
@@ -281,6 +305,8 @@ exports.updateNews = async (req, res) => {
     newsData.title = title;
     newsData.previewText = previewText;
     newsData.news = news;
+    newsData.states =states,
+
     newsData.ageGroup = ageGroup;
     newsData.gender = gender;
     newsData.isFeatured = isFeatured;

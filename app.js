@@ -3,6 +3,7 @@ const cors = require("cors");
 const sequelize = require("./db/db");
 const app = express();
 const passport = require("passport");
+const { States } = require("./models");
 require("./security/passport")(passport);
 
 // middlewares
@@ -17,6 +18,7 @@ app.use("/api/v1/auth", require("./routes/auth.route"));
 app.use("/api/v1/topics", require("./routes/topic.route"));
 app.use("/api/v1/occupations", require("./routes/occupation.route"));
 app.use("/api/v1/news", require("./routes/news.route"));
+app.use("/api/v1/states", require("./routes/states.route"))
 
 // user routes
 app.use("/api/v1/users", require("./routes/user/profile.route"));
@@ -34,10 +36,15 @@ app.use("/api/v1/admin/users", require("./routes/admin/user.route"));
 app.use("/api/v1/admin/title", require("./routes/admin/title.route"));
 
 sequelize
-  .sync({ force: false })
+  .sync({ alter:true})
   .then(() => {
     console.log("Connected to the database");
   })
   .catch((err) => console.log(err));
 
 module.exports = app;
+
+
+
+
+

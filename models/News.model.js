@@ -70,21 +70,34 @@ const News = sequelize.define(
         this.setDataValue("gender", JSON.stringify(value));
       },
     },
-    isbookmarkedByUser: {
-      type: DataTypes.VIRTUAL,
-      get() {
-        return async function (userId) {
-          const bookmark = await Sequelize.models.Bookmark.findOne({
-            where: {
-              news_id: this.news_id,
-              userId: userId,
-              isActive: true,
-            },
-          });
-          return bookmark !== null;
-        };
+    states:{
+      type: DataTypes.STRING,
+      allowNull: false,
+      get:function(){
+        return JSON.parse(this.getDataValue("states"));
+        
       },
+      set: function (value){
+        this.setDataValue("states",JSON.stringify(value))
+      },
+      defaultValue: JSON.stringify(29)
+
     },
+    // isbookmarkedByUser: {
+    //   type: DataTypes.VIRTUAL,
+    //   get() {
+    //     return async function (userId) {
+    //       const bookmark = await Sequelize.models.Bookmark.findOne({
+    //         where: {
+    //           news_id: this.news_id,
+    //           userId: userId,
+    //           isActive: true,
+    //         },
+    //       });
+    //       return bookmark !== null;
+    //     };
+    //   },
+    // },
   },
   {
     timestamps: true,

@@ -29,13 +29,16 @@ exports.getProfile = async (req, res) => {
 };
 
 exports.completeProfile = async (req, res) => {
-  let { gender, occupation, ageGroup, skipPolitical, skipNSFW } = req.body;
+  let { gender, occupation, ageGroup, skipPolitical, skipNSFW, state } = req.body;
   console.log(req.body);
   gender = gender && gender.trim();
   // occupation = occupation && occupation.trim();
 
   if (!occupation) {
     return res.status(400).send({ err: "Occupation is required" });
+  }
+  if(!state){
+    return res.status(400).send({err:"State is required"})
   }
 
   if (!ageGroup) {
@@ -58,6 +61,7 @@ exports.completeProfile = async (req, res) => {
     await user.update({
       gender,
       occupationId: +occupation,
+      stateId:+state,
       skipNSFW,
       skipPolitical,
       ageGroup,
@@ -77,12 +81,13 @@ exports.completeProfile = async (req, res) => {
 
 // update profile details
 exports.updateDetails = async (req, res) => {
-  let { gender, occupation, ageGroup, skipPolitical, skipNSFW } = req.body;
+  let { gender, occupation, ageGroup, skipPolitical, skipNSFW, state} = req.body;
 
   gender = gender && gender.trim();
 
   if (!occupation)
     return res.status(400).send({ err: "Occupation is required" });
+ 
 
   if (!ageGroup) return res.status(400).send({ err: "Age Group is required" });
 
@@ -95,6 +100,7 @@ exports.updateDetails = async (req, res) => {
     const data = await user.update({
       gender,
       occupation,
+      state,
       skipNSFW,
       skipPolitical,
       ageGroup,

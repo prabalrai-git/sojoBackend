@@ -246,6 +246,9 @@ exports.getNewsByCategoryId = async (req, res) => {
 
 exports.getNewsBySearchTerm = async (req, res) => {
   const { term } = req.params;
+
+  const userId = req.query.userId;
+
   try {
     const data1 = await News.findAll({
       where: {
@@ -295,7 +298,23 @@ exports.getNewsBySearchTerm = async (req, res) => {
       ],
     })
 
+    
     const data = data1.concat(data2)
+    if(userId){
+      let usersBookmarkedNews = await Bookmark.findAll({
+        where: { userId: userId },
+      });
+      for (let i = 0; i < data.length; i++) {
+        const foundBookmarkId = usersBookmarkedNews.find(
+          (item) => item.newsId === data[i].id && item.isActive
+        );
+        if (foundBookmarkId) {
+          data[i].dataValues.isBookmarkedByUser = true;
+        } else {
+          data[i].dataValues.isBookmarkedByUser = false;
+        }
+      }
+    }
 
     return res.status(200).json({ data });
   } catch (err) {
