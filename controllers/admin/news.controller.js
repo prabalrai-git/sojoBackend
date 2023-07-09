@@ -142,13 +142,14 @@ exports.postNews = async (req, res) => {
     return res.status(400).send({ err: "Occupation cannot be empty" });
   if (!states || states.length <= 0)
     return res.status(400).send({ err: "State cannot be empty" });
+  if (!gender || gender.length <= 0)
+    return res.status(400).send({ err: "Gender cannot be empty" });
 
   if (!req.file) return res.status(400).send({ err: "Image is required" });
 
   title = handleText(title);
   previewText = handleText(previewText);
 
- console.log(states.length,'11111111111111111111111111111111111111111111111111111111111111111111111111111');
 
 
   // const stateNumber =  states.length >1? states.map(Number):[Number(states)];
@@ -160,7 +161,7 @@ exports.postNews = async (req, res) => {
       "resized.png"
     );
 
-    await sharp(req.file.path).png({ quality: 30 }).toFile(compressedFilePath);
+    await sharp(req.file.path).png({ quality: 18 }).toFile(compressedFilePath);
 
     // return res.send(compressedFile);
     const upload = await cloudinary.v2.uploader.upload(compressedFilePath);
@@ -264,6 +265,8 @@ exports.updateNews = async (req, res) => {
     return res.status(400).send({ err: "Occupation cannot be empty" });
     if (!states || states.length <= 0)
     return res.status(400).send({ err: "State cannot be empty" });
+    if (!gender || gender.length <= 0)
+    return res.status(400).send({ err: "Gender cannot be empty" });
 
 
   if (!req.file && !image)
@@ -288,7 +291,7 @@ exports.updateNews = async (req, res) => {
       );
 
       await sharp(req.file.path)
-        .png({ quality: 30 })
+        .png({ quality: 18 })
         .toFile(compressedFilePath);
       const upload = await cloudinary.v2.uploader.upload(compressedFilePath);
       fs.unlinkSync(req.file.path);

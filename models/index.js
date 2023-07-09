@@ -19,13 +19,19 @@ User.belongsToMany(Topic, {
 Bookmark.belongsTo(User);
 Bookmark.belongsTo(News);
 User.belongsTo(States);
+// News.belongsTo(States)
 
+// News.belongsToMany(States,{
+//   through:"NewsState",
+// })
 
 // define the many-to-many association between News and Topic
 
 News.belongsToMany(Topic, {
   through: NewsTopic,
 });
+
+
 
 // define the many-to-many association between News and Occupation
 News.belongsToMany(Occupation, {

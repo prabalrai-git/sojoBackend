@@ -80,24 +80,24 @@ const News = sequelize.define(
       set: function (value){
         this.setDataValue("states",JSON.stringify(value))
       },
-      defaultValue: JSON.stringify(29)
+      defaultValue: JSON.stringify("1")
 
     },
-    // isbookmarkedByUser: {
-    //   type: DataTypes.VIRTUAL,
-    //   get() {
-    //     return async function (userId) {
-    //       const bookmark = await Sequelize.models.Bookmark.findOne({
-    //         where: {
-    //           news_id: this.news_id,
-    //           userId: userId,
-    //           isActive: true,
-    //         },
-    //       });
-    //       return bookmark !== null;
-    //     };
-    //   },
-    // },
+    isbookmarkedByUser: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return async function (userId) {
+          const bookmark = await Sequelize.models.Bookmark.findOne({
+            where: {
+              news_id: this.news_id,
+              userId: userId,
+              isActive: true,
+            },
+          });
+          return bookmark !== null;
+        };
+      },
+    },
   },
   {
     timestamps: true,

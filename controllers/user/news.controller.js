@@ -22,6 +22,8 @@ exports.getGlobalNews = async (req, res) => {
       ],
     });
 
+    // return res.send(user)
+
     const selectedTopicIds = user.topics.map((topic) => topic.id);
     const allTopics = await Topic.findAll();
     const notSelectedTopics = allTopics.filter(
@@ -41,26 +43,44 @@ exports.getGlobalNews = async (req, res) => {
       (topic) => topic.id
     );
 
+    // console.log(topicIds,'yo' , typeof topicIds);
+
+    
+    const topics = await Topic.findAll({
+      where:{
+        id:{
+          [Op.in]: topicIds,
+
+        }
+      }
+    })
+
+    // res.send(topics)
+  
+
     const data = await News.findAll({
-      limit: limit,
-      offset: offset,
+      // limit: limit,
+      // offset: offset,
+ 
       include: [
         {
           model: Topic,
-          where: {
-            id: {
-              [Op.in]: topicIds,
+            where: {
+              id: {
+                [Op.in]: topicIds,
+              },
             },
-          },
           through: {
             model: NewsTopic,
             attributes: ["order"],
           },
         },
+       
         { model: Occupation },
       ],
-      order: literal("rand()"),
+      // order: literal("rand()"),
     });
+
 
     let usersBookmarkedNews = await Bookmark.findAll({
       where: { userId: req.user.id },
@@ -77,6 +97,29 @@ exports.getGlobalNews = async (req, res) => {
       }
     }
 
+
+// sorting news for user's states at first and others after
+
+
+
+    data.sort((a,b)=>{
+
+      const stateA = Array.isArray(a.states)? a.states.includes(user.stateId): (a.states === user.stateId || a.states === user.stateId?.toString());
+      const stateB = Array.isArray(b.states)? b.states.includes(user.stateId): (b.states === user.stateId || b.states === user.stateId?.toString());
+
+      if (stateA && !stateB) {
+        return -1; // a should come before b
+      } else if (!stateA && stateB) {
+        return 1; // b should come before a
+      } else {
+        return 0; // maintain the same order
+      }
+
+    })
+
+    const limitedData = data.slice(offset,offset+limit)
+
+
     const count = await News.count();
     const totalPages = Math.ceil(count / limit);
     const nextPage = page < totalPages ? page + 1 : null;
@@ -84,7 +127,8 @@ exports.getGlobalNews = async (req, res) => {
     
 
     return res.status(200).json({
-      data: data,
+      nbsp: limitedData.length,
+      data: limitedData,
       pagination: {
         currentPage: page,
         nextPage: nextPage,
@@ -131,8 +175,10 @@ exports.getNews = async (req, res) => {
       },
     };
 
+
     const data = await News.findAll({
       include: [
+        
         {
           model: Topic,
           where: {
@@ -148,8 +194,8 @@ exports.getNews = async (req, res) => {
         },
         { model: Occupation },
       ],
-      limit: limit,
-      offset: offset,
+      // limit: limit,
+      // offset: offset,
       order: [["id", "DESC"]],
       where: whereClause,
     });
@@ -183,11 +229,30 @@ exports.getNews = async (req, res) => {
       where: whereClause,
     });
 
+    
+    data.sort((a,b)=>{
+
+      const stateA = Array.isArray(a.states)? a.states.includes(user.stateId): (a.states === user.stateId || a.states === user.stateId?.toString());
+      const stateB = Array.isArray(b.states)? b.states.includes(user.stateId): (b.states === user.stateId || b.states === user.stateId?.toString());
+
+      if (stateA && !stateB) {
+        return -1; // a should come before b
+      } else if (!stateA && stateB) {
+        return 1; // b should come before a
+      } else {
+        return 0; // maintain the same order
+      }
+
+    })
+
+    const limitedData = data.slice(offset,offset+limit)
+
     const totalPages = Math.ceil(count / limit);
     const nextPage = page < totalPages ? page + 1 : null;
     const prevPage = page > 1 ? page - 1 : null;
     return res.status(200).json({
-      data: data,
+      nbsp: limitedData.length,
+      data: limitedData,
       pagination: {
         currentPage: page,
         nextPage: nextPage,
