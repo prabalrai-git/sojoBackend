@@ -40,9 +40,13 @@ exports.googleLogin = async (req, res) => {
   try {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).send({ err: "Email not registered" });
-    if (user.registrationType !== "google")
+    if (user.registrationType === "facebook")
       return res.status(400).send({
-        err: "Account registered via email. Please sign in through email",
+        err: "Account registered via facebook. Please sign in through facebook",
+      });
+    if (user.registrationType === "apple")
+      return res.status(400).send({
+        err: "Account registered via apple Id. Please sign in through apple Id",
       });
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
@@ -123,6 +127,67 @@ exports.signup = async (req, res) => {
   }
 };
 
+exports.facebookLogin = async (req, res) => {
+  let { username, email } = req.body;
+  try {
+    const [user, created] = await User.findOrCreate({
+      where: { email },
+      defaults: {
+        username,
+        email,
+        registrationType: "facebook",
+        isActive: true,
+      },
+    });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    if (created) {
+      const data = {
+        token,
+        created,
+        user,
+        userAlereadyExits: false,
+      };
+
+      return res.status(201).json({ data });
+    } else if (user.registrationType === "google") {
+      // const data = {
+      //   token,
+      //   user,
+      //   userAlereadyExits: true,
+      // };
+      return res.status(409).send({err:"Account already registered through google. Use google sign in instead."})
+    }
+    else if (user.registrationType === "apple") {
+      // const data = {
+      //   token,
+      //   user,
+      //   userAlereadyExits: true,
+      // };
+      return res.status(409).send({err:"Account already registered through apple. Use apple sign in instead."})
+    }
+    else if (user.registrationType === "email") {
+      // const data = {
+      //   token,
+      //   user,
+      //   userAlereadyExits: true,
+      // };
+      return res.status(409).send({err:"Account already registered through email. Use email sign in instead."})
+    }
+    else if(user.registrationType === "facebook"){
+         const data = {
+        token,
+        user,
+        userAlereadyExits: true,
+      };
+      return res.status(201).json({ data });
+
+    }
+  } catch (error) {
+    return res.status(500).send({ err });
+  }
+};
 exports.googlePhoneLogin = async (req, res) => {
   let { username, email } = req.body;
   try {

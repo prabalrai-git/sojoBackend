@@ -26,7 +26,7 @@ const User = sequelize.define("user", {
     trim: true,
   },
   registrationType: {
-    type: DataTypes.ENUM("email", "google", "apple"),
+    type: DataTypes.ENUM("email", "google", "apple","facebook"),
     allowNull: false,
   },
   isActive: {

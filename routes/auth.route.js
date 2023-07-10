@@ -10,6 +10,8 @@ router.post("/signup", controller.signup);
 router.post("/signup/google", controller.googleSignup);
 router.post("/googlePhoneLogin", controller.googlePhoneLogin);
 
+router.post("/facebookLogin", controller.facebookLogin);
+
 router.post("/verify", controller.postVerificationToken);
 
 router.post("/resend", controller.resendVerificationToken);

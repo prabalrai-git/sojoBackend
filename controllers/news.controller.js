@@ -55,6 +55,8 @@ exports.getTopNews = async (req, res) => {
 
 exports.getNewsById = async (req, res) => {
   const { id } = req.params;
+
+
   try {
     const data = await News.findByPk(id, {
       include: [
@@ -78,6 +80,7 @@ exports.getNewsById = async (req, res) => {
     await data.update({
       views: data.views + 1,
     });
+
 
     if(req.query.userId){
       
