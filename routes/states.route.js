@@ -3,6 +3,4 @@ const controller = require("./../controllers/states.controller");
 
 router.get("/getAllStates", controller.getAllStates);
 
-
-
 module.exports = router;

@@ -6,6 +6,7 @@ const {
   NewsTopic,
   Bookmark,
 } = require("./../models/");
+const { log } = require("console");
 
 exports.getTopNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -56,7 +57,6 @@ exports.getTopNews = async (req, res) => {
 exports.getNewsById = async (req, res) => {
   const { id } = req.params;
 
-
   try {
     const data = await News.findByPk(id, {
       include: [
@@ -81,24 +81,21 @@ exports.getNewsById = async (req, res) => {
       views: data.views + 1,
     });
 
+    if (req.query.userId) {
+      let usersBookmarkedNews = await Bookmark.findAll({
+        where: { userId: req.query.userId },
+      });
 
-    if(req.query.userId){
-      
-          let usersBookmarkedNews = await Bookmark.findAll({
-            where: { userId: req.query.userId },
-          });
-      
-          const foundBookmarkId = usersBookmarkedNews.find(
-            (item) => item.newsId === data.id && item.isActive
-          );
-          // return res.send(foundBookmarkId);
-      
-          if (foundBookmarkId) {
-            data.dataValues.isBookmarkedByUser = true;
-          } else {
-            data.dataValues.isBookmarkedByUser = false;
-          }
+      const foundBookmarkId = usersBookmarkedNews.find(
+        (item) => item.newsId === data.id && item.isActive
+      );
+      // return res.send(foundBookmarkId);
 
+      if (foundBookmarkId) {
+        data.dataValues.isBookmarkedByUser = true;
+      } else {
+        data.dataValues.isBookmarkedByUser = false;
+      }
     }
 
     return res.status(200).json({ data });
@@ -193,9 +190,8 @@ exports.getNewsByCategoryId = async (req, res) => {
       ],
       order: [["id", "DESC"]],
     });
-    
-    if(userId){
-      
+
+    if (userId) {
       let usersBookmarkedNews = await Bookmark.findAll({
         where: { userId: userId },
       });
@@ -256,7 +252,6 @@ exports.getNewsBySearchTerm = async (req, res) => {
     const data1 = await News.findAll({
       where: {
         [Op.or]: [{ title: { [Op.like]: "%" + term + "%" } }],
-
       },
       include: [
         {
@@ -274,36 +269,33 @@ exports.getNewsBySearchTerm = async (req, res) => {
         },
       ],
       order: [["id", "DESC"]],
-      
     });
-// search on topic title 
+    // search on topic title
     const data2 = await News.findAll({
-    
       include: [
         {
           model: Topic,
           as: "topics",
+          where: {
+            [Op.or]: [{ name: { [Op.startsWith]: term.trim() } }],
+          },
           through: {
             model: NewsTopic,
             attributes: ["order"],
           },
-          order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
-          where: {
-            [Op.or]: [{ name: { [Op.like]: "%" + term + "%" } }],
-    
-          },
+          // order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
         },
-    
+
         {
           model: Occupation,
           as: "occupations",
         },
       ],
-    })
+    });
 
-    
-    const data = data1.concat(data2)
-    if(userId){
+    console.log(data2, term);
+    const data = data1.concat(data2);
+    if (userId) {
       let usersBookmarkedNews = await Bookmark.findAll({
         where: { userId: userId },
       });
@@ -325,5 +317,3 @@ exports.getNewsBySearchTerm = async (req, res) => {
     return res.status(500).send({ err });
   }
 };
-
-
