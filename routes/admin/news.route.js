@@ -33,6 +33,13 @@ router.post(
   controller.postNews
 );
 
+router.post(
+  "/sendPushNotification",
+  passport.authenticate("jwt", { session: false }),
+  isAdmin,
+  controller.sendPushNotification
+);
+
 router.patch(
   "/:id",
   passport.authenticate("jwt", { session: false }),

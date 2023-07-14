@@ -157,47 +157,43 @@ exports.facebookLogin = async (req, res) => {
       //   user,
       //   userAlereadyExits: true,
       // };
-      return res.status(409).send({err:"Account already registered through google. Use google sign in instead."})
-    }
-    else if (user.registrationType === "apple") {
+      return res.status(409).send({
+        err: "Account already registered through google. Use google sign in instead.",
+      });
+    } else if (user.registrationType === "apple") {
       // const data = {
       //   token,
       //   user,
       //   userAlereadyExits: true,
       // };
-      return res.status(409).send({err:"Account already registered through apple. Use apple sign in instead."})
-    }
-    else if (user.registrationType === "email") {
+      return res.status(409).send({
+        err: "Account already registered through apple. Use apple sign in instead.",
+      });
+    } else if (user.registrationType === "email") {
       // const data = {
       //   token,
       //   user,
       //   userAlereadyExits: true,
       // };
-      return res.status(409).send({err:"Account already registered through email. Use email sign in instead."})
-    }
-    else if(user.registrationType === "facebook"){
-         const data = {
+      return res.status(409).send({
+        err: "Account already registered through email. Use email sign in instead.",
+      });
+    } else if (user.registrationType === "facebook") {
+      const data = {
         token,
         user,
         userAlereadyExits: true,
       };
       return res.status(201).json({ data });
-
     }
   } catch (error) {
     return res.status(500).send({ err });
   }
 };
 exports.googlePhoneLogin = async (req, res) => {
-  let { username, email, fcmToken } = req.body;
-
-
-
-
+  let { username, email } = req.body;
 
   try {
-
-
     const [user, created] = await User.findOrCreate({
       where: { email },
       defaults: {
@@ -205,7 +201,6 @@ exports.googlePhoneLogin = async (req, res) => {
         email,
         registrationType: "google",
         isActive: true,
-        fcmToken
       },
     });
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {

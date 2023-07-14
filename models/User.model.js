@@ -26,7 +26,7 @@ const User = sequelize.define("user", {
     trim: true,
   },
   registrationType: {
-    type: DataTypes.ENUM("email", "google", "apple","facebook"),
+    type: DataTypes.ENUM("email", "google", "apple", "facebook"),
     allowNull: false,
   },
   isActive: {
@@ -64,10 +64,6 @@ const User = sequelize.define("user", {
   },
   resetPasswordExpires: {
     type: DataTypes.DATE,
-    allowNull: true,
-  },
-  fcmToken: {
-    type: DataTypes.STRING,
     allowNull: true,
   },
 });
