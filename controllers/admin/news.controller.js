@@ -7,6 +7,7 @@ const { Op } = require("sequelize");
 const sharp = require("sharp");
 const path = require("path");
 const admin = require("firebase-admin");
+const { log } = require("console");
 
 exports.getAllNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -369,30 +370,66 @@ exports.deleteNews = async (req, res) => {
 };
 
 exports.sendPushNotification = async (req, res) => {
-  const { title, previewText, image, topic } = req.body;
+  const { id, title, previewText, image, topics } = req.body;
 
   // Create a list containing up to 500 registration tokens.
   // These registration tokens come from the client FCM SDKs.
 
   try {
-    if (!title || !previewText || !image || !topic) {
+    if (!title || !previewText || !image || !topics || !id) {
       return res
         .status(404)
         .send({ msg: "Please provide all the required fields" });
     }
+
+    let slicedtopics;
+
+    if (topics.length > 5) {
+      slicedtopics = topics.slice(0, 5);
+    } else {
+      slicedtopics = topics;
+    }
+
+    let condition = "";
+
+    for (let i = 0; i < slicedtopics.length; i++) {
+      if (i === 0) {
+        condition += `'${slicedtopics[i].toLowerCase()}' in topics`;
+      } else {
+        condition += ` || '${slicedtopics[i].toLowerCase()}' in topics`;
+      }
+    }
+
+    // if(topics.length > 5){
+
+    //   var  slicedtopics = topics.slice(0,5);
+    // }
+    // if(slicedtopics){
+    //   let condition = `\'${topics[0]}\' in topics || \'${topics[1]}\' in topics`
+    // }
+
     const message = {
       notification: {
-        title: title.slice(0, 30),
-        body: previewText.slice(0, 30),
+        title: title,
+        body: previewText,
+        image: image,
+      },
+      data: {
+        id: id.toString(),
       },
       android: {
         notification: {
           color: "#26b160",
-          imageUrl: image,
+          image: image,
+          icon: "ic_launcher",
+          priority: "max",
+          visibility: "public",
         },
       },
+      condition: "'politics' in topics || 'law' in topics",
+      // Required for background/quit data-only messages on Android
       // tokens: [registrationToken],
-      topic: topic.toLowerCase(),
+      // topic: topic.toLowerCase(),
     };
 
     // Send a message to the device corresponding to the provided
