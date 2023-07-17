@@ -26,9 +26,8 @@ router.get(
 router.get(
   "/getBookmarkedNewsByCategoryId/:id",
   passport.authenticate("jwt", { session: false }),
-isUser,
-controller.getBookmarkedNewsByCategoryId
-
-)
+  isUser,
+  controller.getBookmarkedNewsByCategoryId
+);
 
 module.exports = router;

@@ -6,7 +6,6 @@ const {
   NewsTopic,
   Bookmark,
 } = require("./../models/");
-const { log } = require("console");
 
 exports.getTopNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1

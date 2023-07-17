@@ -7,7 +7,6 @@ const { Op } = require("sequelize");
 const sharp = require("sharp");
 const path = require("path");
 const admin = require("firebase-admin");
-const { log } = require("console");
 
 exports.getAllNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -239,10 +238,6 @@ exports.updateNews = async (req, res) => {
     image,
   } = req.body;
   const { id } = req.params;
-
-  //  return console.log(states,"2333333333333sdfsddddddddddddddddddddddddddddddd33333333333333333333333333333");
-
-  // const stateNumber = states.length >1? states?.map(Number):[Number(states)];
 
   if (!title || title.trim().length <= 0)
     return res.status(400).send({ err: "Title cannot be empty" });
