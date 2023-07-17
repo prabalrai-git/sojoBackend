@@ -192,7 +192,6 @@ exports.facebookLogin = async (req, res) => {
 };
 exports.googlePhoneLogin = async (req, res) => {
   let { username, email } = req.body;
-
   try {
     const [user, created] = await User.findOrCreate({
       where: { email },
