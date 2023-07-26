@@ -9,6 +9,7 @@ router.post("/signup", controller.signup);
 
 router.post("/signup/google", controller.googleSignup);
 router.post("/googlePhoneLogin", controller.googlePhoneLogin);
+router.post("/applePhoneLogin", controller.applePhoneLogin);
 
 router.post("/facebookLogin", controller.facebookLogin);
 

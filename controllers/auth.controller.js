@@ -190,6 +190,44 @@ exports.facebookLogin = async (req, res) => {
     return res.status(500).send({ err });
   }
 };
+exports.applePhoneLogin = async (req, res) => {
+  let { username, email } = req.body;
+  try {
+    const [user, created] = await User.findOrCreate({
+      where: { email },
+      defaults: {
+        username,
+        email,
+        registrationType: "apple",
+        isActive: true,
+      },
+    });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
+    if (created) {
+      const data = {
+        token,
+        created,
+        user,
+        userAlereadyExits: false,
+      };
+
+      return res.status(201).json({ data });
+    } else if (user.registrationType !== "apple") {
+      return res.status(400).json({
+        msg: `user email already registered through ${user.registrationType}`,
+      });
+    } else {
+      const data = {
+        token,
+        user,
+        userAlereadyExits: true,
+      };
+      return res.status(201).json({ data });
+    }
+  } catch (error) {
+    return res.status(500).send({ err });
+  }
+};
 exports.googlePhoneLogin = async (req, res) => {
   let { username, email } = req.body;
   try {
@@ -202,9 +240,7 @@ exports.googlePhoneLogin = async (req, res) => {
         isActive: true,
       },
     });
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
     if (created) {
       const data = {
         token,
@@ -214,6 +250,10 @@ exports.googlePhoneLogin = async (req, res) => {
       };
 
       return res.status(201).json({ data });
+    } else if (user.registrationType !== "google") {
+      return res.status(400).json({
+        msg: `user email already registered through ${user.registrationType}`,
+      });
     } else {
       const data = {
         token,

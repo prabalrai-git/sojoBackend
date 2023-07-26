@@ -367,9 +367,6 @@ exports.deleteNews = async (req, res) => {
 exports.sendPushNotification = async (req, res) => {
   const { id, title, previewText, image, topics } = req.body;
 
-  // Create a list containing up to 500 registration tokens.
-  // These registration tokens come from the client FCM SDKs.
-
   try {
     if (!title || !previewText || !image || !topics || !id) {
       return res
@@ -395,14 +392,6 @@ exports.sendPushNotification = async (req, res) => {
       }
     }
 
-    // if(topics.length > 5){
-
-    //   var  slicedtopics = topics.slice(0,5);
-    // }
-    // if(slicedtopics){
-    //   let condition = `\'${topics[0]}\' in topics || \'${topics[1]}\' in topics`
-    // }
-
     const message = {
       notification: {
         title: title,
@@ -421,9 +410,8 @@ exports.sendPushNotification = async (req, res) => {
           visibility: "public",
         },
       },
-      condition: "'politics' in topics || 'law' in topics",
-      // Required for background/quit data-only messages on Android
-      // tokens: [registrationToken],
+      condition: condition,
+
       // topic: topic.toLowerCase(),
     };
 
