@@ -5,12 +5,12 @@ const News = sequelize.define(
   "news",
   {
     title: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
       trim: true,
     },
     previewText: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
       trim: true,
     },
@@ -70,18 +70,16 @@ const News = sequelize.define(
         this.setDataValue("gender", JSON.stringify(value));
       },
     },
-    states:{
+    states: {
       type: DataTypes.STRING,
       allowNull: false,
-      get:function(){
+      get: function () {
         return JSON.parse(this.getDataValue("states"));
-        
       },
-      set: function (value){
-        this.setDataValue("states",JSON.stringify(value))
+      set: function (value) {
+        this.setDataValue("states", JSON.stringify(value));
       },
-      defaultValue: JSON.stringify("1")
-
+      defaultValue: JSON.stringify("1"),
     },
     isbookmarkedByUser: {
       type: DataTypes.VIRTUAL,

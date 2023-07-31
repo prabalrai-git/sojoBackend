@@ -14,7 +14,10 @@ admin.initializeApp({
 const PORT = process.env.PORT || 9000;
 
 app.get("/", (req, res) => {
-  res.status(200).send(`<h1>well done</h1>`);
+  res.status(200).send(`<h1>Sojo news</h1>`);
+});
+app.get("/api/v1", (req, res) => {
+  res.status(200).send(`<h1>Sojo news</h1>`);
 });
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);

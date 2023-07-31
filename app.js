@@ -36,7 +36,7 @@ app.use("/api/v1/admin/users", require("./routes/admin/user.route"));
 app.use("/api/v1/admin/title", require("./routes/admin/title.route"));
 
 sequelize
-  .sync({ alter: false })
+  .sync({ alter: true })
   .then(() => {
     console.log("Connected to the database");
   })
