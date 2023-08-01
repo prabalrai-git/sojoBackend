@@ -16,6 +16,12 @@ router.post(
   isUser,
   controller.completeProfile
 );
+router.post(
+  "/profile/skipCompleteProfile",
+  passport.authenticate("jwt", { session: false }),
+  isUser,
+  controller.skipCompleteProfile
+);
 
 router.patch(
   "/profile/details",

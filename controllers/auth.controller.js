@@ -251,8 +251,8 @@ exports.googlePhoneLogin = async (req, res) => {
 
       return res.status(201).json({ data });
     } else if (user.registrationType !== "google") {
-      return res.status(400).json({
-        msg: `user email already registered through ${user.registrationType}`,
+      return res.status(400).send({
+        err: `user email already registered through ${user.registrationType}`,
       });
     } else {
       const data = {
@@ -295,6 +295,43 @@ exports.googleSignup = async (req, res) => {
 
     return res.status(201).json({ data });
   } catch (err) {
+    console.log(err);
+    return res.status(500).send({ err });
+  }
+};
+
+exports.guestLogin = async (req, res) => {
+  const username = "Guest User";
+  const isActive = true;
+  const isComplete = true;
+  const gender = "other";
+  const ageGroup = "21-35";
+  const skipNSFW = true;
+  const registrationType = "guest";
+  const isGuestUser = true;
+
+  try {
+    const user = await User.create({
+      username,
+      isComplete,
+      gender,
+      ageGroup,
+      skipNSFW,
+      registrationType,
+      isActive,
+      isGuestUser,
+    });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    const data = {
+      token,
+      id: user.id,
+      guestUser: true,
+    };
+    return res.status(201).json({ data });
+  } catch (error) {
     console.log(err);
     return res.status(500).send({ err });
   }

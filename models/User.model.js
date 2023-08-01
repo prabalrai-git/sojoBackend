@@ -26,7 +26,7 @@ const User = sequelize.define("user", {
     trim: true,
   },
   registrationType: {
-    type: DataTypes.ENUM("email", "google", "apple", "facebook"),
+    type: DataTypes.ENUM("email", "google", "apple", "facebook", "guest"),
     allowNull: false,
   },
   isActive: {
@@ -34,6 +34,10 @@ const User = sequelize.define("user", {
     defaultValue: false,
   },
   isComplete: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  isGuestUser: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },

@@ -28,17 +28,62 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+exports.skipCompleteProfile = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).send({ err: "User not found" });
+    }
+    if (!user.isActive) {
+      return res.status(400).send({ err: "Account not activated" });
+    }
+
+    if (user.isComplete) {
+      return res.status(400).send({ err: "Account already completed" });
+    }
+
+    await user.update({
+      gender: req.body.gender ? req.body.gender : null,
+      occupationId: req.body.occupation ? +req.body.occupation : null,
+      stateId: req.body.stateId ? +req.body.state : null,
+      skipNSFW: req.body.skipNSFW ? req.body.skipNSFW : false,
+      skipPolitical: req.body.skipPolitical ? req.body.skipPolitical : false,
+      ageGroup: req.body.ageGroup ? req.body.ageGroup : null,
+      isComplete: true,
+    });
+
+    const updatedUser = await User.findByPk(req.user.id, {
+      attributes: { exclude: ["password"] },
+    });
+
+    return res.status(200).json({ data: updatedUser });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send({ err });
+  }
+};
 exports.completeProfile = async (req, res) => {
-  let { gender, occupation, ageGroup, skipPolitical, skipNSFW, state } = req.body;
-  console.log(req.body);
+  let { gender, occupation, ageGroup, skipPolitical, skipNSFW, state } =
+    req.body;
   gender = gender && gender.trim();
   // occupation = occupation && occupation.trim();
 
   if (!occupation) {
     return res.status(400).send({ err: "Occupation is required" });
   }
-  if(!state){
-    return res.status(400).send({err:"State is required"})
+  if (!state) {
+    return res.status(400).send({ err: "State is required" });
+  }
+
+  if (!ageGroup) {
+    return res.status(400).send({ err: "Age Group is required" });
+  }
+
+  if (!occupation) {
+    return res.status(400).send({ err: "Occupation is required" });
+  }
+  if (!state) {
+    return res.status(400).send({ err: "State is required" });
   }
 
   if (!ageGroup) {
@@ -61,7 +106,7 @@ exports.completeProfile = async (req, res) => {
     await user.update({
       gender,
       occupationId: +occupation,
-      stateId:+state,
+      stateId: +state,
       skipNSFW,
       skipPolitical,
       ageGroup,
@@ -81,13 +126,13 @@ exports.completeProfile = async (req, res) => {
 
 // update profile details
 exports.updateDetails = async (req, res) => {
-  let { gender, occupation, ageGroup, skipPolitical, skipNSFW, state} = req.body;
+  let { gender, occupation, ageGroup, skipPolitical, skipNSFW, state } =
+    req.body;
 
   gender = gender && gender.trim();
 
   if (!occupation)
     return res.status(400).send({ err: "Occupation is required" });
- 
 
   if (!ageGroup) return res.status(400).send({ err: "Age Group is required" });
 
