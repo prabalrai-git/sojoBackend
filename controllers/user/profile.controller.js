@@ -144,8 +144,8 @@ exports.updateDetails = async (req, res) => {
 
     const data = await user.update({
       gender,
-      occupation,
-      state,
+      occupationId: +occupation,
+      stateId: +state,
       skipNSFW,
       skipPolitical,
       ageGroup,
