@@ -45,42 +45,37 @@ exports.getGlobalNews = async (req, res) => {
 
     // console.log(topicIds,'yo' , typeof topicIds);
 
-    
     const topics = await Topic.findAll({
-      where:{
-        id:{
+      where: {
+        id: {
           [Op.in]: topicIds,
-
-        }
-      }
-    })
+        },
+      },
+    });
 
     // res.send(topics)
-  
 
     const data = await News.findAll({
       // limit: limit,
       // offset: offset,
- 
+
       include: [
         {
           model: Topic,
-            where: {
-              id: {
-                [Op.in]: topicIds,
-              },
+          where: {
+            id: {
+              [Op.in]: topicIds,
             },
+          },
           through: {
             model: NewsTopic,
             attributes: ["order"],
           },
         },
-       
+
         { model: Occupation },
       ],
-      // order: literal("rand()"),
     });
-
 
     let usersBookmarkedNews = await Bookmark.findAll({
       where: { userId: req.user.id },
@@ -97,15 +92,15 @@ exports.getGlobalNews = async (req, res) => {
       }
     }
 
+    // sorting news for user's states at first and others after
 
-// sorting news for user's states at first and others after
-
-
-
-    data.sort((a,b)=>{
-
-      const stateA = Array.isArray(a.states)? a.states.includes(user.stateId): (a.states === user.stateId || a.states === user.stateId?.toString());
-      const stateB = Array.isArray(b.states)? b.states.includes(user.stateId): (b.states === user.stateId || b.states === user.stateId?.toString());
+    data.sort((a, b) => {
+      const stateA = Array.isArray(a.states)
+        ? a.states.includes(user.stateId)
+        : a.states === user.stateId || a.states === user.stateId?.toString();
+      const stateB = Array.isArray(b.states)
+        ? b.states.includes(user.stateId)
+        : b.states === user.stateId || b.states === user.stateId?.toString();
 
       if (stateA && !stateB) {
         return -1; // a should come before b
@@ -114,17 +109,37 @@ exports.getGlobalNews = async (req, res) => {
       } else {
         return 0; // maintain the same order
       }
+    });
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-    })
+    // Sorting function
+    function sortNewsArray(news1, news2) {
+      const isFeaturedComparison = news2.isFeatured - news1.isFeatured;
 
-    const limitedData = data.slice(offset,offset+limit)
+      if (isFeaturedComparison !== 0) {
+        // If isFeatured values are different, prioritize isFeatured
+        return isFeaturedComparison;
+      }
 
+      // If both news items have the same isFeatured value
+      if (news1.createdAt >= twoDaysAgo && news2.createdAt >= twoDaysAgo) {
+        // Both news items are within the last two days, sort randomly
+        return Math.random() - 0.5;
+      }
+
+      // Fallback to normal sorting by isFeatured with random order
+      return Math.random() - 0.5;
+    }
+
+    data.sort(sortNewsArray);
+
+    const limitedData = data.slice(offset, offset + limit);
 
     const count = await News.count();
     const totalPages = Math.ceil(count / limit);
     const nextPage = page < totalPages ? page + 1 : null;
     const prevPage = page > 1 ? page - 1 : null;
-    
 
     return res.status(200).json({
       nbsp: limitedData.length,
@@ -175,10 +190,8 @@ exports.getNews = async (req, res) => {
       },
     };
 
-
     const data = await News.findAll({
       include: [
-        
         {
           model: Topic,
           where: {
@@ -229,11 +242,13 @@ exports.getNews = async (req, res) => {
       where: whereClause,
     });
 
-    
-    data.sort((a,b)=>{
-
-      const stateA = Array.isArray(a.states)? a.states.includes(user.stateId): (a.states === user.stateId || a.states === user.stateId?.toString());
-      const stateB = Array.isArray(b.states)? b.states.includes(user.stateId): (b.states === user.stateId || b.states === user.stateId?.toString());
+    data.sort((a, b) => {
+      const stateA = Array.isArray(a.states)
+        ? a.states.includes(user.stateId)
+        : a.states === user.stateId || a.states === user.stateId?.toString();
+      const stateB = Array.isArray(b.states)
+        ? b.states.includes(user.stateId)
+        : b.states === user.stateId || b.states === user.stateId?.toString();
 
       if (stateA && !stateB) {
         return -1; // a should come before b
@@ -242,10 +257,24 @@ exports.getNews = async (req, res) => {
       } else {
         return 0; // maintain the same order
       }
+    });
 
-    })
+    function sortNewsArray(news1, news2) {
+      if (news1.isFeatured === news2.isFeatured) {
+        // If both news items have the same isFeatured value, sort by createdAt
+        return news2.createdAt - news1.createdAt;
+      }
+      // If news1 isFeatured is true and news2 isFeatured is false, news1 should come first
+      if (news1.isFeatured) {
+        return -1;
+      }
+      // If news2 isFeatured is true and news1 isFeatured is false, news2 should come first
+      return 1;
+    }
 
-    const limitedData = data.slice(offset,offset+limit)
+    data.sort(sortNewsArray);
+
+    const limitedData = data.slice(offset, offset + limit);
 
     const totalPages = Math.ceil(count / limit);
     const nextPage = page < totalPages ? page + 1 : null;
