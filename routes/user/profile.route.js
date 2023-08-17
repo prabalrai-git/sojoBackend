@@ -58,4 +58,11 @@ router.patch(
   controller.updatePassword
 );
 
+router.delete(
+  "/profile/deactivateAccount",
+  passport.authenticate("jwt", { session: false }),
+  isUser,
+  controller.deactivateAccount
+);
+
 module.exports = router;

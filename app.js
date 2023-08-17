@@ -3,7 +3,6 @@ const cors = require("cors");
 const sequelize = require("./db/db");
 const app = express();
 const passport = require("passport");
-const { States } = require("./models");
 require("./security/passport")(passport);
 
 // middlewares

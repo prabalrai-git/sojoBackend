@@ -281,3 +281,13 @@ exports.addTopic = async (req, res) => {
     return res.status(500).send({ err });
   }
 };
+
+exports.deactivateAccount = async (req, res) => {
+  try {
+    const response = await User.destroy({ where: { id: req.user.id } });
+    res.status(200).json({ successMsg: true, response });
+  } catch (error) {
+    console.log("Error", error);
+    res.status(500).json({ successMsg: false, Msg: "Internal serever error" });
+  }
+};
