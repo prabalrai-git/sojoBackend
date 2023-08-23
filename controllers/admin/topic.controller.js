@@ -3,6 +3,8 @@ const cloudinaryConfig = require("./../../utils/cloudinary");
 const cloudinary = require("cloudinary");
 const { handleText } = require("./../../helper/text");
 const fs = require("fs");
+const path = require("path");
+const sharp = require("sharp");
 
 exports.postTopic = async (req, res) => {
   cloudinaryConfig();
@@ -13,11 +15,21 @@ exports.postTopic = async (req, res) => {
   if (!req.file) return res.status(400).send({ err: "Image is required" });
 
   try {
-    const upload = await cloudinary.v2.uploader.upload(req.file.path, {
+    const compressedFilePath = path.join(
+      __dirname,
+      "../../",
+      "uploads",
+      "newtopic.webp"
+    );
+
+    await sharp(req.file.path).webp({ quality: 24 }).toFile(compressedFilePath);
+    const upload = await cloudinary.v2.uploader.upload(compressedFilePath, {
       quality: "auto",
       fetch_format: "auto",
     });
     fs.unlinkSync(req.file.path);
+    fs.unlinkSync(compressedFilePath);
+
     const topicExists = await Topic.findOne({ where: { name } });
     if (topicExists)
       return res.status(409).send({ err: "Topic already exists" });
@@ -50,11 +62,22 @@ exports.updateTopic = async (req, res) => {
     const topic = await Topic.findByPk(id);
     if (!topic) return res.status(404).send({ err: "Topic not found" });
     if (req.file) {
-      const upload = await cloudinary.v2.uploader.upload(req.file.path, {
+      const compressedFilePath = path.join(
+        __dirname,
+        "../../",
+        "uploads",
+        "newTopic.webp"
+      );
+
+      await sharp(req.file.path)
+        .webp({ quality: 24 })
+        .toFile(compressedFilePath);
+      const upload = await cloudinary.v2.uploader.upload(compressedFilePath, {
         quality: "auto",
         fetch_format: "auto",
       });
       fs.unlinkSync(req.file.path);
+      fs.unlinkSync(compressedFilePath);
 
       if (topic.publicId) {
         await cloudinary.v2.uploader.destroy(topic.publicId);
