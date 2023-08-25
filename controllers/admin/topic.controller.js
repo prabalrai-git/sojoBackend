@@ -22,9 +22,9 @@ exports.postTopic = async (req, res) => {
       "newtopic.webp"
     );
 
-    await sharp(req.file.path).webp({ quality: 24 }).toFile(compressedFilePath);
+    await sharp(req.file.path).webp({ quality: 16 }).toFile(compressedFilePath);
     const upload = await cloudinary.v2.uploader.upload(compressedFilePath, {
-      quality: "auto",
+      // quality: "auto",
       fetch_format: "auto",
     });
     fs.unlinkSync(req.file.path);
@@ -70,10 +70,10 @@ exports.updateTopic = async (req, res) => {
       );
 
       await sharp(req.file.path)
-        .webp({ quality: 24 })
+        .webp({ quality: 16 })
         .toFile(compressedFilePath);
       const upload = await cloudinary.v2.uploader.upload(compressedFilePath, {
-        quality: "auto",
+        // quality: "auto",
         fetch_format: "auto",
       });
       fs.unlinkSync(req.file.path);
