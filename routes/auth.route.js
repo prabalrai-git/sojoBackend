@@ -5,6 +5,7 @@ router.post("/login", controller.login);
 router.post("/login/google", controller.googleLogin);
 router.post("/signup", controller.signup);
 router.post("/guestLogin", controller.guestLogin);
+router.post("/guestLoginSingle", controller.guestLoginSingle);
 router.post("/signup/google", controller.googleSignup);
 router.post("/googlePhoneLogin", controller.googlePhoneLogin);
 router.post("/applePhoneLogin", controller.applePhoneLogin);

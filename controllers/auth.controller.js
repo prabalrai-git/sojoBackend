@@ -311,6 +311,20 @@ exports.guestLogin = async (req, res) => {
   const isGuestUser = true;
 
   try {
+    // const userOld = await User.findOne({ where: { username: "Guest User" } });
+
+    // if (userOld) {
+    //   const token = jwt.sign({ id: userOld.id }, process.env.JWT_SECRET, {
+    //     expiresIn: "1d",
+    //   });
+    //   const data = {
+    //     token,
+    //     id: userOld.id,
+    //     guestUser: true,
+    //   };
+    //   return res.status(201).json({ data });
+    // }
+
     const user = await User.create({
       username,
       isComplete,
@@ -324,13 +338,61 @@ exports.guestLogin = async (req, res) => {
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
-
     const data = {
       token,
       id: user.id,
       guestUser: true,
     };
     return res.status(201).json({ data });
+  } catch (error) {
+    console.log(err);
+    return res.status(500).send({ err });
+  }
+};
+exports.guestLoginSingle = async (req, res) => {
+  // const username = "Guest User";
+  // const isActive = true;
+  // const isComplete = true;
+  // const gender = "other";
+  // const ageGroup = "21-35";
+  // const skipNSFW = true;
+  // const registrationType = "guest";
+  // const isGuestUser = true;
+
+  try {
+    const userOld = await User.findOne({ where: { username: "Guest User" } });
+
+    if (userOld) {
+      const token = jwt.sign({ id: userOld.id }, process.env.JWT_SECRET, {
+        expiresIn: "1d",
+      });
+      const data = {
+        token,
+        id: userOld.id,
+        guestUser: true,
+      };
+      return res.status(201).json({ data });
+    }
+
+    // const user = await User.create({
+    //   username,
+    //   isComplete,
+    //   gender,
+    //   ageGroup,
+    //   skipNSFW,
+    //   registrationType,
+    //   isActive,
+    //   isGuestUser,
+    // });
+    // const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+    //   expiresIn: "1d",
+    // });
+    // const data = {
+    //   token,
+    //   id: user.id,
+    //   guestUser: true,
+    // };
+    // return res.status(201).json({ data });
   } catch (error) {
     console.log(err);
     return res.status(500).send({ err });
