@@ -154,10 +154,10 @@ exports.postNews = async (req, res) => {
       __dirname,
       "../../",
       "uploads",
-      "resized.webp"
+      "resized.jpeg"
     );
 
-    await sharp(req.file.path).webp({ quality: 21 }).toFile(compressedFilePath);
+    await sharp(req.file.path).jpeg({ quality: 21 }).toFile(compressedFilePath);
 
     // return res.send(compressedFile);
     const upload = await cloudinary.v2.uploader.upload(compressedFilePath);
@@ -274,11 +274,11 @@ exports.updateNews = async (req, res) => {
         __dirname,
         "../../",
         "uploads",
-        "resized.webp"
+        "resized.jpeg"
       );
 
       await sharp(req.file.path)
-        .webp({ quality: 21 })
+        .jpeg({ quality: 21 })
         .toFile(compressedFilePath);
       const upload = await cloudinary.v2.uploader.upload(compressedFilePath);
       fs.unlinkSync(req.file.path);

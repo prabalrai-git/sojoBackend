@@ -3,11 +3,14 @@ const cors = require("cors");
 const sequelize = require("./db/db");
 const app = express();
 const passport = require("passport");
+const bodyParser = require("body-parser");
 require("./security/passport")(passport);
 
 // middlewares
 app.use(cors());
-app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
+// app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // auth routes

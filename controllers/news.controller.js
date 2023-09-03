@@ -308,7 +308,6 @@ exports.getNewsBySearchTerm = async (req, res) => {
       ],
     });
 
-    console.log(data2, term);
     const data = data1.concat(data2);
     if (userId) {
       let usersBookmarkedNews = await Bookmark.findAll({

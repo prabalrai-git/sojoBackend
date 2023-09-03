@@ -19,10 +19,10 @@ exports.postTopic = async (req, res) => {
       __dirname,
       "../../",
       "uploads",
-      "newtopic.webp"
+      "newtopic.jpeg"
     );
 
-    await sharp(req.file.path).webp({ quality: 16 }).toFile(compressedFilePath);
+    await sharp(req.file.path).jpeg({ quality: 16 }).toFile(compressedFilePath);
     const upload = await cloudinary.v2.uploader.upload(compressedFilePath, {
       // quality: "auto",
       fetch_format: "auto",
@@ -66,11 +66,11 @@ exports.updateTopic = async (req, res) => {
         __dirname,
         "../../",
         "uploads",
-        "newTopic.webp"
+        "newTopic.jpeg"
       );
 
       await sharp(req.file.path)
-        .webp({ quality: 16 })
+        .jpeg({ quality: 16 })
         .toFile(compressedFilePath);
       const upload = await cloudinary.v2.uploader.upload(compressedFilePath, {
         // quality: "auto",
