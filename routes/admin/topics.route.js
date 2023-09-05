@@ -27,4 +27,6 @@ router.delete(
   controller.deleteTopic
 );
 
+router.get("/getTopicsByPopularity", controller.getTopicsByPopularity);
+
 module.exports = router;

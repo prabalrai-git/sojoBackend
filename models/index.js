@@ -11,6 +11,7 @@ const States = require("./States.model");
 // relationships
 Token.belongsTo(User);
 User.belongsTo(Occupation);
+
 User.belongsToMany(Topic, {
   through: "user_topics",
   onDelete: "CASCADE",
