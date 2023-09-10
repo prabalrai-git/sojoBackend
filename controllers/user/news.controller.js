@@ -161,6 +161,11 @@ exports.getNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
   const limit = req.query.limit ? parseInt(req.query.limit) : 9;
   const offset = (page - 1) * limit;
+  const currentDate = new Date();
+
+  // Calculate the date 7 days ago
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(currentDate.getDate() - 3);
   try {
     const user = await User.findByPk(req.user.id, {
       include: [
@@ -273,6 +278,34 @@ exports.getNews = async (req, res) => {
     }
 
     data.sort(sortNewsArray);
+
+    // Sort by views for news within the last 7 days
+    data.sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      const isWithinLast3DaysA = dateA >= threeDaysAgo;
+
+      const isWithinLast3DaysB = dateB >= threeDaysAgo;
+
+      if (isWithinLast3DaysA && isWithinLast3DaysB) {
+        // Both news items are within the last 7 days, sort by views
+        if (Math.random() < 0.5) {
+          // Randomly shuffle the order within the same condition
+          return a.views - b.views;
+        } else {
+          return b.views - a.views;
+        }
+      } else if (isWithinLast3DaysA) {
+        // News A is within the last 7 days, but not B
+        return -1;
+      } else if (isWithinLast3DaysB) {
+        // News B is within the last 7 days, but not A
+        return 1;
+      } else {
+        // Both news items are older than 7 days, sort by date
+        return dateB - dateA;
+      }
+    });
 
     const limitedData = data.slice(offset, offset + limit);
 
