@@ -45,7 +45,7 @@ exports.skipCompleteProfile = async (req, res) => {
     await user.update({
       gender: req.body.gender ? req.body.gender : null,
       occupationId: req.body.occupation ? +req.body.occupation : null,
-      stateId: req.body.stateId ? +req.body.state : null,
+      stateId: req.body.state ? +req.body.state : null,
       skipNSFW: req.body.skipNSFW ? req.body.skipNSFW : false,
       skipPolitical: req.body.skipPolitical ? req.body.skipPolitical : false,
       ageGroup: req.body.ageGroup ? req.body.ageGroup : null,

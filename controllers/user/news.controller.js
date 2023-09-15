@@ -8,11 +8,32 @@ const {
   Bookmark,
 } = require("./../../models/");
 
+exports.deleteOldData = async () => {
+  const twentyFiveDaysAgo = new Date();
+  twentyFiveDaysAgo.setDate(twentyFiveDaysAgo.getDate() - 35);
+
+  try {
+    const deletedRows = await News.destroy({
+      where: {
+        createdAt: {
+          [Op.lt]: twentyFiveDaysAgo,
+        },
+      },
+    });
+
+    console.log(`Deleted ${deletedRows} rows.`);
+  } catch (error) {
+    console.error("Error deleting data:", error);
+  }
+};
+
 exports.getGlobalNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
   const limit = req.query.limit ? parseInt(req.query.limit) : 9;
   const offset = (page - 1) * limit;
   try {
+    // deleteOldData();
+
     const user = await User.findByPk(req.user.id, {
       include: [
         {
@@ -165,8 +186,9 @@ exports.getNews = async (req, res) => {
 
   // Calculate the date 7 days ago
   const threeDaysAgo = new Date();
-  threeDaysAgo.setDate(currentDate.getDate() - 3);
+  threeDaysAgo.setDate(currentDate.getDate() - 2);
   try {
+    // deleteOldData();
     const user = await User.findByPk(req.user.id, {
       include: [
         {
@@ -279,34 +301,6 @@ exports.getNews = async (req, res) => {
 
     data.sort(sortNewsArray);
 
-    // Sort by views for news within the last 7 days
-    data.sort((a, b) => {
-      const dateA = new Date(a.createdAt);
-      const dateB = new Date(b.createdAt);
-      const isWithinLast3DaysA = dateA >= threeDaysAgo;
-
-      const isWithinLast3DaysB = dateB >= threeDaysAgo;
-
-      if (isWithinLast3DaysA && isWithinLast3DaysB) {
-        // Both news items are within the last 7 days, sort by views
-        if (Math.random() < 0.5) {
-          // Randomly shuffle the order within the same condition
-          return a.views - b.views;
-        } else {
-          return b.views - a.views;
-        }
-      } else if (isWithinLast3DaysA) {
-        // News A is within the last 7 days, but not B
-        return -1;
-      } else if (isWithinLast3DaysB) {
-        // News B is within the last 7 days, but not A
-        return 1;
-      } else {
-        // Both news items are older than 7 days, sort by date
-        return dateB - dateA;
-      }
-    });
-
     const limitedData = data.slice(offset, offset + limit);
 
     const totalPages = Math.ceil(count / limit);
@@ -334,12 +328,15 @@ exports.getSimilarNews = async (req, res) => {
   const offset = (page - 1) * limit;
 
   const { id } = req.params;
+
   try {
     const user = await User.findByPk(req.user.id, { include: Topic });
+
     const newsExists = await News.findByPk(id, { include: Topic });
+
     if (!newsExists) return res.status(404).send({ err: "News not found" });
     const topicIds = user.topics.map((topic) => topic.id);
-    const categoryExists = await Topic.findByPk(newsExists.topics[0].id);
+    const categoryExists = await Topic.findByPk(newsExists?.topics[0]?.id);
     if (!categoryExists)
       return res.status(404).send({ err: "Category not found" });
 
@@ -405,3 +402,5 @@ exports.getSimilarNews = async (req, res) => {
     return res.status(500).send({ err });
   }
 };
+
+// function to hard delete news data older than 35 days

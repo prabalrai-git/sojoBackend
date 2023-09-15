@@ -4,7 +4,12 @@ const sequelize = require("./db/db");
 const app = express();
 const passport = require("passport");
 const bodyParser = require("body-parser");
+const schedule = require("node-schedule");
 require("./security/passport")(passport);
+const { deleteOldData } = require("./controllers/user/news.controller");
+
+// delete news older than 35 days scheduled for everyday at 11:30 am
+schedule.scheduleJob({ hour: 11, minute: 30 }, deleteOldData);
 
 // middlewares
 app.use(cors());

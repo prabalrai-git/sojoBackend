@@ -99,6 +99,8 @@ const News = sequelize.define(
   },
   {
     timestamps: true,
+    // paranoid: true,
+    // deletedAt: "destroyTime",
   }
 );
 
