@@ -7,6 +7,7 @@ const HomeTitle = require("./HomeTitle");
 const NewsTopic = require("./news_topic");
 const Bookmark = require("./Bookmark.model");
 const States = require("./States.model");
+const UserActiveStatus = require("./UserActiveStatus.model");
 
 // relationships
 Token.belongsTo(User);
@@ -44,4 +45,5 @@ module.exports = {
   NewsTopic,
   Bookmark,
   States,
+  UserActiveStatus,
 };

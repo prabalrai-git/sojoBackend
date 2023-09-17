@@ -64,5 +64,12 @@ router.delete(
   isUser,
   controller.deactivateAccount
 );
+router.post(
+  "/profile/addUserActivity",
+  passport.authenticate("jwt", { session: false }),
+  isUser,
+  controller.addUserActivity
+);
+router.get("/profile/getUserActivity", controller.getUserActivity);
 
 module.exports = router;

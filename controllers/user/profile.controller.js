@@ -1,4 +1,9 @@
-const { User, Topic, Occupation } = require("./../../models/");
+const {
+  User,
+  Topic,
+  Occupation,
+  UserActiveStatus,
+} = require("./../../models/");
 const bcrypt = require("bcrypt");
 const { sendEmail } = require("../../utils/nodemailer");
 
@@ -289,5 +294,57 @@ exports.deactivateAccount = async (req, res) => {
   } catch (error) {
     console.log("Error", error);
     res.status(500).json({ successMsg: false, Msg: "Internal serever error" });
+  }
+};
+
+exports.addUserActivity = async (req, res) => {
+  try {
+    const data = await UserActiveStatus.create({
+      userId: req.user.id,
+      isActive: true,
+    });
+
+    return res.status(200).json({ data, success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error });
+  }
+};
+
+exports.getUserActivity = async (req, res) => {
+  const { userId, date } = req.query;
+
+  try {
+    if (date) {
+      const data = await UserActiveStatus.findAll({
+        where: {
+          userId: userId,
+          date: date,
+        },
+      });
+      return res.status(200).json({ data, date });
+    }
+    if (!userId) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0"); // Month is 0-based, so we add 1 and pad with leading zero if needed
+      const day = String(today.getDate()).padStart(2, "0");
+      const formattedDate = `${year}-${month}-${day}`;
+      const data = await UserActiveStatus.findAll({
+        where: {
+          date: formattedDate,
+        },
+      });
+      return res.status(200).json({ data });
+    }
+    const data = await UserActiveStatus.findAll({
+      where: {
+        userId: userId,
+      },
+    });
+    return res.status(200).json({ data });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error });
   }
 };
