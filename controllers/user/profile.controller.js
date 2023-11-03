@@ -6,6 +6,7 @@ const {
 } = require("./../../models/");
 const bcrypt = require("bcrypt");
 const { sendEmail } = require("../../utils/nodemailer");
+const { Op } = require("sequelize");
 
 exports.getProfile = async (req, res) => {
   // return res.send({ id: req.user.id });
@@ -312,7 +313,7 @@ exports.addUserActivity = async (req, res) => {
 };
 
 exports.getUserActivity = async (req, res) => {
-  const { userId, date } = req.query;
+  const { userId, date, startDate, endDate } = req.query;
 
   try {
     if (date) {
@@ -324,7 +325,7 @@ exports.getUserActivity = async (req, res) => {
       });
       return res.status(200).json({ data, date });
     }
-    if (!userId) {
+    if (!userId && !startDate && !endDate) {
       const today = new Date();
       const year = today.getFullYear();
       const month = String(today.getMonth() + 1).padStart(2, "0"); // Month is 0-based, so we add 1 and pad with leading zero if needed
@@ -336,6 +337,18 @@ exports.getUserActivity = async (req, res) => {
         },
       });
       return res.status(200).json({ data });
+    }
+
+    if (startDate && endDate) {
+      const data = await UserActiveStatus.findAll({
+        where: {
+          date: {
+            [Op.between]: [startDate, endDate],
+          },
+        },
+        include: [{ model: User }],
+      });
+      return res.status(200).json({ data, startDate, endDate });
     }
     const data = await UserActiveStatus.findAll({
       where: {

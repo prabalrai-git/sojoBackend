@@ -21,6 +21,7 @@ User.belongsToMany(Topic, {
 Bookmark.belongsTo(User);
 Bookmark.belongsTo(News);
 User.belongsTo(States);
+States.hasMany(User);
 // News.belongsTo(States)
 
 // News.belongsToMany(States,{
@@ -34,6 +35,9 @@ News.belongsToMany(Topic, {
 News.belongsToMany(Occupation, {
   through: "news_occupation",
 });
+
+User.hasMany(UserActiveStatus);
+UserActiveStatus.belongsTo(User);
 
 module.exports = {
   News,

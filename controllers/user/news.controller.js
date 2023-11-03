@@ -10,7 +10,7 @@ const {
 
 exports.deleteOldData = async () => {
   const twentyFiveDaysAgo = new Date();
-  twentyFiveDaysAgo.setDate(twentyFiveDaysAgo.getDate() - 35);
+  twentyFiveDaysAgo.setDate(twentyFiveDaysAgo.getDate() - 20);
 
   try {
     const deletedRows = await News.destroy({
@@ -185,8 +185,8 @@ exports.getNews = async (req, res) => {
   const currentDate = new Date();
 
   // Calculate the date 7 days ago
-  const threeDaysAgo = new Date();
-  threeDaysAgo.setDate(currentDate.getDate() - 2);
+  // const threeDaysAgo = new Date();
+  // threeDaysAgo.setDate(currentDate.getDate() - 2);
   try {
     // deleteOldData();
     const user = await User.findByPk(req.user.id, {
@@ -198,7 +198,12 @@ exports.getNews = async (req, res) => {
       ],
       order: [["id", "DESC"]],
     });
-    const topicIds = user.topics.map((topic) => topic.id);
+
+    let topicIds = user.topics.map((topic) => topic.id);
+    if (user.skipPolitical) {
+      topicIds = topicIds.filter((item) => item.id !== 1);
+      await user.removeTopic(1);
+    }
 
     const whereClause = {
       [Op.and]: {
