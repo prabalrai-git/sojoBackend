@@ -375,6 +375,150 @@ exports.getSimilarNews = async (req, res) => {
       limit: limit,
       offset: offset,
     });
+    if (!data) {
+      try {
+        // deleteOldData();
+        const user = await User.findByPk(req.user.id, {
+          include: [
+            {
+              model: Topic,
+              as: "topics",
+            },
+          ],
+          order: [["id", "DESC"]],
+        });
+
+        let topicIds = user.topics.map((topic) => topic.id);
+        if (user.skipPolitical) {
+          topicIds = topicIds.filter((item) => item.id !== 1);
+          await user.removeTopic(1);
+        }
+
+        const whereClause = {
+          [Op.and]: {
+            id: {
+              [Op.not]: null,
+            },
+            [Op.or]: [
+              {
+                isNSFW: false,
+              },
+              {
+                isNSFW: true,
+                id: !user.skipNSFW ? { [Op.not]: null } : null,
+              },
+            ],
+          },
+        };
+
+        const data = await News.findAll({
+          include: [
+            {
+              model: Topic,
+              where: {
+                id: {
+                  [Op.in]: topicIds,
+                },
+              },
+              through: {
+                model: NewsTopic,
+                attributes: ["order"],
+              },
+              order: [
+                [{ model: NewsTopic, as: "news_topics" }, "order", "ASC"],
+              ],
+            },
+            { model: Occupation },
+          ],
+          // limit: limit,
+          // offset: offset,
+          order: [["id", "DESC"]],
+          where: whereClause,
+        });
+
+        let usersBookmarkedNews = await Bookmark.findAll({
+          where: { userId: req.user.id },
+        });
+
+        for (let i = 0; i < data.length; i++) {
+          const foundBookmarkId = usersBookmarkedNews.find(
+            (item) => item.newsId === data[i].id && item.isActive
+          );
+          if (foundBookmarkId) {
+            data[i].dataValues.isBookmarkedByUser = true;
+          } else {
+            data[i].dataValues.isBookmarkedByUser = false;
+          }
+        }
+
+        const count = await News.count({
+          include: [
+            {
+              model: Topic,
+              where: {
+                id: {
+                  [Op.in]: topicIds,
+                },
+              },
+            },
+          ],
+          where: whereClause,
+        });
+
+        data.sort((a, b) => {
+          const stateA = Array.isArray(a.states)
+            ? a.states.includes(user.stateId)
+            : a.states === user.stateId ||
+              a.states === user.stateId?.toString();
+          const stateB = Array.isArray(b.states)
+            ? b.states.includes(user.stateId)
+            : b.states === user.stateId ||
+              b.states === user.stateId?.toString();
+
+          if (stateA && !stateB) {
+            return -1; // a should come before b
+          } else if (!stateA && stateB) {
+            return 1; // b should come before a
+          } else {
+            return 0; // maintain the same order
+          }
+        });
+
+        function sortNewsArray(news1, news2) {
+          if (news1.isFeatured === news2.isFeatured) {
+            // If both news items have the same isFeatured value, sort by createdAt
+            return news2.createdAt - news1.createdAt;
+          }
+          // If news1 isFeatured is true and news2 isFeatured is false, news1 should come first
+          if (news1.isFeatured) {
+            return -1;
+          }
+          // If news2 isFeatured is true and news1 isFeatured is false, news2 should come first
+          return 1;
+        }
+
+        data.sort(sortNewsArray);
+
+        const limitedData = data.slice(offset, offset + limit);
+
+        const totalPages = Math.ceil(count / limit);
+        const nextPage = page < totalPages ? page + 1 : null;
+        const prevPage = page > 1 ? page - 1 : null;
+        return res.status(200).json({
+          nbsp: limitedData.length,
+          data: limitedData,
+          pagination: {
+            currentPage: page,
+            nextPage: nextPage,
+            prevPage: prevPage,
+            totalPages: totalPages,
+          },
+        });
+      } catch (err) {
+        console.log(err);
+        return res.status(500).send({ err });
+      }
+    }
     const count = await News.count();
     const totalPages = Math.ceil(count / limit);
     const nextPage = page < totalPages ? page + 1 : null;

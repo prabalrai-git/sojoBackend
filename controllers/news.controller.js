@@ -6,6 +6,7 @@ const {
   NewsTopic,
   Bookmark,
 } = require("./../models/");
+const { Sequelize } = require("../db/db");
 
 exports.getTopNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -330,4 +331,21 @@ exports.getNewsBySearchTerm = async (req, res) => {
     console.log(err);
     return res.status(500).send({ err });
   }
+};
+
+exports.numberOfNewsForToday = async (req, res) => {
+  const currentDate = new Date().toISOString().split("T")[0];
+
+  const startOfDay = `${currentDate} 00:00:00`;
+  const endOfDay = `${currentDate} 23:59:59`;
+
+  const count = await News.count({
+    where: {
+      createdAt: {
+        [Sequelize.Op.gte]: startOfDay,
+        [Sequelize.Op.lte]: endOfDay,
+      },
+    },
+  });
+  return res.status(200).send({ countOfNewsToday: count });
 };
