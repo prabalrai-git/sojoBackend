@@ -5,8 +5,8 @@ const {
   Occupation,
   NewsTopic,
   Bookmark,
+  User,
 } = require("./../models/");
-const { Sequelize } = require("../db/db");
 
 exports.getTopNews = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1; // default page is 1
@@ -147,6 +147,51 @@ exports.getSimilarNews = async (req, res) => {
       limit: limit,
       offset: offset,
     });
+
+    if (data.length < 1) {
+      try {
+        const data2 = await News.findAll({
+          limit: limit,
+          offset: offset,
+          include: [
+            {
+              model: Topic,
+              as: "topics",
+              through: {
+                model: NewsTopic,
+                attributes: ["order"],
+              },
+              order: [
+                [{ model: NewsTopic, as: "news_topics" }, "order", "ASC"],
+              ],
+            },
+            {
+              model: Occupation,
+              as: "occupations",
+            },
+          ],
+          order: [["id", "DESC"]],
+        });
+
+        const count = await News.count();
+        const totalPages = Math.ceil(count / limit);
+        const nextPage = page < totalPages ? page + 1 : null;
+        const prevPage = page > 1 ? page - 1 : null;
+
+        return res.status(200).json({
+          data: data2,
+          pagination: {
+            currentPage: page,
+            nextPage: nextPage,
+            prevPage: prevPage,
+            totalPages: totalPages,
+          },
+        });
+      } catch (err) {
+        console.log(err);
+        return res.status(500).send({ err });
+      }
+    }
     const count = await News.count();
     const totalPages = Math.ceil(count / limit);
     const nextPage = page < totalPages ? page + 1 : null;
@@ -334,18 +379,80 @@ exports.getNewsBySearchTerm = async (req, res) => {
 };
 
 exports.numberOfNewsForToday = async (req, res) => {
-  const currentDate = new Date().toISOString().split("T")[0];
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0); // Set the time to the beginning of the day.
 
-  const startOfDay = `${currentDate} 00:00:00`;
-  const endOfDay = `${currentDate} 23:59:59`;
+  const endOfDay = new Date(currentDate);
+  endOfDay.setHours(23, 59, 59, 999); // Set the time to the end of the day.
 
-  const count = await News.count({
-    where: {
-      createdAt: {
-        [Sequelize.Op.gte]: startOfDay,
-        [Sequelize.Op.lte]: endOfDay,
+  const user = await User.findByPk(req.user.id, {
+    include: [
+      {
+        model: Topic,
+        as: "topics",
       },
-    },
+    ],
+    order: [["id", "DESC"]],
   });
-  return res.status(200).send({ countOfNewsToday: count });
+
+  let topicIds = user.topics.map((topic) => topic.id);
+  if (user.skipPolitical) {
+    topicIds = topicIds.filter((item) => item.id !== 1);
+    await user.removeTopic(1);
+  }
+
+  const whereClause = {
+    [Op.and]: {
+      id: {
+        [Op.not]: null,
+      },
+      [Op.or]: [
+        {
+          isNSFW: false,
+        },
+        {
+          isNSFW: true,
+          id: !user.skipNSFW ? { [Op.not]: null } : null,
+        },
+      ],
+    },
+    createdAt: {
+      [Op.gte]: currentDate,
+      [Op.lte]: endOfDay,
+    },
+  };
+
+  const data = await News.findAll({
+    include: [
+      {
+        model: Topic,
+        where: {
+          id: {
+            [Op.in]: topicIds,
+          },
+        },
+        through: {
+          model: NewsTopic,
+          attributes: ["order"],
+        },
+        order: [[{ model: NewsTopic, as: "news_topics" }, "order", "ASC"]],
+      },
+      { model: Occupation },
+    ],
+    // limit: limit,
+    // offset: offset,
+    order: [["id", "DESC"]],
+    where: whereClause,
+  });
+
+  // const count = await News.count({
+  //   where: {
+  //     createdAt: {
+  //       [Op.gte]: currentDate,
+  //       [Op.lte]: endOfDay,
+  //     },
+  //   },
+  // });
+
+  return res.status(200).send({ countOfNewsToday: data.length });
 };
